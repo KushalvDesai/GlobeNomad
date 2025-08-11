@@ -10,6 +10,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CostEstimatorModule } from './cost-estimator/cost-estimator.module';
 import { CitiesResolver } from './cities/cities.resolver';
 import { AdminModule } from './admin/admin.module';
+import { CitiesModule } from './cities/cities.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AdminModule } from './admin/admin.module';
     AuthModule,
     CostEstimatorModule,
     TripModule,
+    CitiesModule,
     AdminModule
   ],
   providers: [AppService, CitiesResolver],
