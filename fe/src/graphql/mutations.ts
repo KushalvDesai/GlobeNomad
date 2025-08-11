@@ -103,8 +103,6 @@ export const CREATE_ITINERARY = gql`
           id
           name
           city
-          latitude
-          longitude
           description
           type
         }

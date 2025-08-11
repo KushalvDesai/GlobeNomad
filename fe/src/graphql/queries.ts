@@ -56,3 +56,19 @@ export const GET_CITIES = gql`
     getCities
   }
 `;
+
+// Trip by id
+export const GET_TRIP = gql`
+  query GetTrip($id: ID!) {
+    trip(id: $id) {
+      id
+      title
+      description
+      startDate
+      endDate
+      currency
+      owner { id }
+      createdAt
+    }
+  }
+`;
