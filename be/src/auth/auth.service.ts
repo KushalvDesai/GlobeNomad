@@ -1,51 +1,156 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
-import { User } from '../user/schema/user.schema';
-import { clerkClient } from '@clerk/clerk-sdk-node';
+import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
+import { User, UserDocument } from '../user/schema/user.schema';
+import { SignupInput } from './dto/signup.input';
+import { LoginInput } from './dto/login.input';
+import { AuthResponse } from './dto/auth-response.dto';
+import { EmailService } from './email.service';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private jwtService: JwtService,
+    private emailService: EmailService,
+  ) {}
 
-  async syncUserFromClerk(clerkUserId: string): Promise<User> {
-    // Check if user already exists in our database
-    let user = await this.userModel.findOne({ clerkId: clerkUserId });
+  async signup(signupInput: SignupInput): Promise<AuthResponse> {
+    const { email, password, name, firstName, lastName } = signupInput;
 
-    if (!user) {
-      // Get user data from Clerk
-      const clerkUser = await clerkClient.users.getUser(clerkUserId);
-
-      // Create new user in our database
-      user = new this.userModel({
-        clerkId: clerkUser.id,
-        email: clerkUser.emailAddresses[0]?.emailAddress,
-        name: `${clerkUser.firstName || ''} ${clerkUser.lastName || ''}`.trim(),
-        firstName: clerkUser.firstName,
-        lastName: clerkUser.lastName,
-        imageUrl: clerkUser.imageUrl,
-        createdAt: new Date(clerkUser.createdAt),
-        updatedAt: new Date(),
-      });
-
-      await user.save();
+    // Check if user already exists
+    const existingUser = await this.userModel.findOne({ email });
+    if (existingUser) {
+      throw new BadRequestException('User with this email already exists');
     }
 
-    return user;
+    // Hash password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Create user
+    const user = new this.userModel({
+      email,
+      password: hashedPassword,
+      name,
+      firstName,
+      lastName,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    await user.save();
+
+    // Generate JWT
+    const payload = { email: user.email, sub: user._id };
+    const token = this.jwtService.sign(payload);
+
+    return {
+      token,
+      user: {
+        id: (user._id as any).toString(),
+        email: user.email,
+        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    };
   }
 
-  async getUserByClerkId(clerkId: string): Promise<User | null> {
-    return this.userModel.findOne({ clerkId });
+  async login(loginInput: LoginInput): Promise<AuthResponse> {
+    const { email, password } = loginInput;
+
+    // Find user
+    const user = await this.userModel.findOne({ email });
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password || '');
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Generate JWT
+    const payload = { email: user.email, sub: user._id };
+    const token = this.jwtService.sign(payload);
+
+    return {
+      token,
+      user: {
+        id: (user._id as any).toString(),
+        email: user.email,
+        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    };
   }
 
-  async updateUser(
-    clerkId: string,
-    updateData: Partial<User>,
-  ): Promise<User | null> {
-    return this.userModel.findOneAndUpdate(
-      { clerkId },
-      { ...updateData, updatedAt: new Date() },
-      { new: true },
-    );
+  async forgotPassword(email: string): Promise<string> {
+    const user = await this.userModel.findOne({ email });
+    if (!user) {
+      throw new BadRequestException('User with this email does not exist');
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 3600000); // 1 hour from now
+
+    // Save token to user
+    user.passwordResetToken = resetToken;
+    user.passwordResetExpires = resetExpires;
+    await user.save();
+
+    // Send email
+    await this.emailService.sendPasswordResetEmail(email, resetToken);
+
+    return 'Password reset email sent';
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<string> {
+    const user = await this.userModel.findOne({
+      passwordResetToken: token,
+      passwordResetExpires: { $gt: new Date() },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    // Hash new password
+    const saltRounds = 12;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update user
+    user.password = hashedPassword;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    user.updatedAt = new Date();
+    await user.save();
+
+    return 'Password reset successful';
+  }
+
+  async validateUser(payload: any): Promise<any> {
+    try {
+      const user = await this.userModel.findById(payload.sub).select('-password');
+      if (!user) {
+        throw new UnauthorizedException('User not found');
+      }
+      return {
+        id: (user._id as any).toString(),
+        email: user.email,
+        name: user.name,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token');
+    }
   }
 }
