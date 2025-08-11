@@ -11,6 +11,7 @@ import { CostEstimatorModule } from './cost-estimator/cost-estimator.module';
 import { CitiesResolver } from './cities/cities.resolver';
 import { AdminModule } from './admin/admin.module';
 import { CitiesModule } from './cities/cities.module';
+import { ActivitiesModule } from './activities/activities.module';
 
 @Module({
   imports: [
@@ -30,7 +31,8 @@ import { CitiesModule } from './cities/cities.module';
     CostEstimatorModule,
     TripModule,
     CitiesModule,
-    AdminModule
+    AdminModule,
+    ActivitiesModule
   ],
   providers: [AppService, CitiesResolver],
 })
