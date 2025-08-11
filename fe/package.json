@@ -16,6 +16,7 @@
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
+    "framer-motion": "^12.23.12",
     "graphql": "^16.11.0",
     "lucide-react": "^0.539.0",
     "mongoose": "^8.17.1",

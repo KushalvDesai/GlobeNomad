@@ -194,7 +194,12 @@ export default function LoginPage() {
                 <p className="text-white/60">
                   Don't have an account?{" "}
                   <button
-                    onClick={() => router.push("/register")}
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log("Navigating to register page...");
+                      router.push("/register");
+                    }}
                     className="text-white hover:text-white/80 underline font-medium"
                   >
                     Sign up here
