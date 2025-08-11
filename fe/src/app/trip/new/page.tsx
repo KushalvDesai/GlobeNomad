@@ -13,6 +13,7 @@ export default function NewTripPage() {
   const searchParams = useSearchParams();
 
   const [destination, setDestination] = useState("");
+  const [description, setDescription] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [showCitySuggestions, setShowCitySuggestions] = useState(false);
@@ -196,6 +197,18 @@ export default function NewTripPage() {
                 </label>
               </div>
 
+              <div className="mt-4">
+                <label className="flex flex-col gap-2">
+                  <span className="text-sm text-[#9AA0A6]">Description</span>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Brief description of your trip"
+                    className="w-full min-h-24 rounded-md bg-[#0b0b12] border border-[#2a2a35] p-3"
+                  />
+                </label>
+              </div>
+
               <div className="mt-4 flex justify-end">
                 <button
                   disabled={!canSubmit || creating}
@@ -205,6 +218,7 @@ export default function NewTripPage() {
                         variables: {
                           input: {
                             title: destination,
+                            description: description || undefined,
                             startDate: startDate || undefined,
                             endDate: endDate || undefined,
                           },
