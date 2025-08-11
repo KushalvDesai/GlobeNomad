@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@apollo/client": "^3.13.9",
-    "@clerk/nextjs": "^6.30.0",
     "@hookform/resolvers": "^5.2.1",
     "@react-three/drei": "^10.6.1",
     "@react-three/fiber": "^9.0.0-alpha.8",
