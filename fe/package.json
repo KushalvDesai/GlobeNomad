@@ -3,14 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 3001",
     "lint": "next lint"
   },
   "dependencies": {
     "@apollo/client": "^3.13.9",
     "@hookform/resolvers": "^5.2.1",
+    "@react-three/drei": "^10.6.1",
+    "@react-three/fiber": "^9.3.0",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
@@ -19,6 +21,7 @@
     "graphql": "^16.11.0",
     "lucide-react": "^0.539.0",
     "mongoose": "^8.17.1",
+    "motion": "^12.23.12",
     "next": "15.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -26,6 +29,8 @@
     "recharts": "^3.1.2",
     "shadcn": "^2.10.0",
     "tailwind-merge": "^3.3.1",
+    "three": "^0.179.1",
+    "three-globe": "^2.44.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
@@ -34,6 +39,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.179.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
     "tailwindcss": "^4",
