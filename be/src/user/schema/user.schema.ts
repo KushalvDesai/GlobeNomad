@@ -38,9 +38,9 @@ export class User {
   @Field({ nullable: true })
   passwordResetExpires?: Date;
 
-  @Prop()
-  @Field()
-  createdAt: Date;
+  // @Prop({ required: false })
+  // @Field({ nullable: true })
+  // clerkId?: string;
 
   @Prop()
   @Field()
