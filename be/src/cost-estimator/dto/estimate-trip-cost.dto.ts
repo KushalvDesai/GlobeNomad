@@ -1,4 +1,18 @@
-import { Field, InputType, ObjectType, Int, Float } from '@nestjs/graphql';
+import { Field, InputType, ObjectType, Int, Float, registerEnumType } from '@nestjs/graphql';
+
+// Define travel mode enum
+export enum TravelMode {
+  TRAIN = 'train',
+  BUS = 'bus',
+  FLIGHT = 'flight',
+  AUTO = 'auto' // Auto-select based on distance
+}
+
+// Register the enum for GraphQL
+registerEnumType(TravelMode, {
+  name: 'TravelMode',
+  description: 'Available travel modes for the trip',
+});
 
 @InputType()
 export class TripCostInput {
@@ -13,6 +27,15 @@ export class TripCostInput {
 
   @Field(() => Int)
   travelers: number;
+
+  @Field(() => TravelMode, { nullable: true, defaultValue: TravelMode.AUTO })
+  travelMode?: TravelMode;
+
+  @Field({ nullable: true })
+  originCountry?: string;
+
+  @Field({ nullable: true })
+  destinationCountry?: string;
 }
 
 @ObjectType()
@@ -43,4 +66,10 @@ export class TripCostEstimate {
 
   @Field(() => Int)
   travelers: number;
+
+  @Field(() => TravelMode)
+  selectedTravelMode: TravelMode;
+
+  @Field()
+  tripType: string; // 'domestic' or 'international'
 }
