@@ -1,7 +1,4 @@
 "use client";
-
-import { AuthGuard } from "@/components/AuthGuard";
-import { useAuth } from "@/context/AuthContext";
 import { motion } from "framer-motion";
 import { ThreeDMarquee, type ThreeDMarqueeItem } from "@/components/ui/aceternity/three-d-marquee";
 import { 
@@ -14,25 +11,24 @@ import {
   Settings
 } from "lucide-react";
 
-function Dashboard() {
-  const { user, logout } = useAuth();
-
-  // Cities with placeholder images - these can be replaced with actual images later
+export default function Home() {
+  
+  // Cities with local assets in public/assets/cities (filenames and case must match exactly)
   const cities = [
-    { name: "Agra", src: "/next.svg" }, // Placeholder
-    { name: "Bengaluru", src: "/next.svg" }, // Placeholder
-    { name: "Delhi", src: "/next.svg" }, // Placeholder
-    { name: "Hyderabad", src: "/next.svg" }, // Placeholder
-    { name: "Jaipur", src: "/next.svg" }, // Placeholder
-    { name: "Kolkata", src: "/next.svg" }, // Placeholder
-    { name: "Mumbai", src: "/next.svg" }, // Placeholder
-    { name: "Pune", src: "/next.svg" }, // Placeholder
-    { name: "Ahmedabad", src: "/next.svg" }, // Placeholder
-    { name: "Chennai", src: "/next.svg" }, // Placeholder
-    { name: "Chandigarh", src: "/next.svg" }, // Placeholder
-    { name: "Lucknow", src: "/next.svg" }, // Placeholder
-    { name: "Bhopal", src: "/next.svg" }, // Placeholder
-    { name: "Indore", src: "/next.svg" } // Placeholder
+    { name: "Agra", src: "assets/cities/agra.jpg" },
+    { name: "Bengaluru", src: "assets/cities/bengaluru.webp" },
+    { name: "Delhi", src: "assets/cities/delhi.jpg" },
+    { name: "Hyderabad", src: "assets/cities/hyderabad.jfif" },
+    { name: "Jaipur", src: "assets/cities/jaipur.jfif" },
+    { name: "Kolkata", src: "assets/cities/kolkata.jfif" },
+    { name: "Mumbai", src: "assets/cities/Mumbai.jpg" },
+    { name: "Pune", src: "assets/cities/pune.jfif" },
+    { name: "Ahmedabad", src: "assets/cities/ahmedabad.webp" },
+    { name: "Chennai", src: "assets/cities/chennai.jpg" },
+    { name: "Chandigarh", src: "assets/cities/chandigarh.webp" },
+    { name: "Lucknow", src: "assets/cities/lucknow.jfif" },
+    { name: "Bhopal", src: "assets/cities/bhopal.jfif" },
+    { name: "Indore", src: "assets/cities/indore.jpg" }
   ];
 
   // Repeat to fill the 3D grid nicely
@@ -54,11 +50,7 @@ function Dashboard() {
             <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Settings">
               <Settings className="w-5 h-5" />
             </button>
-            <button 
-              onClick={logout}
-              className="p-2 rounded-md hover:bg-[#14141c]" 
-              aria-label="Account"
-            >
+            <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Account">
               <User className="w-5 h-5" />
             </button>
           </div>
@@ -102,31 +94,6 @@ function Dashboard() {
               </div>
             </div>
           </section>
-
-          {/* User Information Section */}
-          {user && (
-            <section className="bg-[#12121a] border border-[#2a2a35] rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4 text-white">Welcome back, {user.firstName}!</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-[#0f0f17] p-4 rounded-lg">
-                  <label className="block text-[#9AA0A6] text-sm mb-1">Name</label>
-                  <p className="text-[#E6E8EB]">{user.name}</p>
-                </div>
-                <div className="bg-[#0f0f17] p-4 rounded-lg">
-                  <label className="block text-[#9AA0A6] text-sm mb-1">Email</label>
-                  <p className="text-[#E6E8EB]">{user.email}</p>
-                </div>
-                <div className="bg-[#0f0f17] p-4 rounded-lg">
-                  <label className="block text-[#9AA0A6] text-sm mb-1">First Name</label>
-                  <p className="text-[#E6E8EB]">{user.firstName}</p>
-                </div>
-                <div className="bg-[#0f0f17] p-4 rounded-lg">
-                  <label className="block text-[#9AA0A6] text-sm mb-1">Last Name</label>
-                  <p className="text-[#E6E8EB]">{user.lastName}</p>
-                </div>
-              </div>
-            </section>
-          )}
         </div>
       </main>
 

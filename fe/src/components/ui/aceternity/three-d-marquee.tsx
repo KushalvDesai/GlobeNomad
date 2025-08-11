@@ -1,70 +1,136 @@
 "use client";
-
 import { motion } from "framer-motion";
-import Image from "next/image";
-import { useState } from "react";
+import { cn } from "@/lib/utils";
 
-export interface ThreeDMarqueeItem {
-  src: string;
-  name: string;
-}
+export type ThreeDMarqueeItem = { src: string; name?: string };
 
-interface ThreeDMarqueeProps {
+export function ThreeDMarquee({
+  items,
+  className,
+}: {
   items: ThreeDMarqueeItem[];
   className?: string;
-}
+}) {
+  const images = items.map((i) => i.src);
+  const names = items.map((i) => i.name);
+  const FALLBACK_SRC = "assets/cities/fallback.svg";
 
-export function ThreeDMarquee({ items, className }: ThreeDMarqueeProps) {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const chunkSize = Math.ceil(images.length / 4);
+  const chunks = Array.from({ length: 4 }, (_, colIndex) => {
+    const start = colIndex * chunkSize;
+    return images.slice(start, start + chunkSize);
+  });
+
+  let labelIndex = 0;
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
-      <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/20 z-10 pointer-events-none" />
-      
-      <motion.div
-        className="flex space-x-4 h-full"
-        animate={{
-          x: ["0%", "-50%"],
-        }}
-        transition={{
-          x: {
-            repeat: Infinity,
-            repeatType: "loop",
-            duration: 20,
-            ease: "linear",
-          },
-        }}
-      >
-        {/* Render items twice for seamless loop */}
-        {[...items, ...items].map((item, index) => (
-          <motion.div
-            key={`${item.name}-${index}`}
-            className="flex-shrink-0 relative w-80 h-full rounded-xl overflow-hidden cursor-pointer"
-            onHoverStart={() => setHoveredIndex(index)}
-            onHoverEnd={() => setHoveredIndex(null)}
-            whileHover={{ scale: 1.05, rotateY: 5 }}
-            style={{ perspective: "1000px" }}
+    <div className={cn("mx-auto block w-full h-[360px] overflow-hidden rounded-2xl", className)}>
+      <div className="flex size-full items-center justify-center">
+        {/* use wide canvas so columns reach edges; scale adjusts vertical fit */}
+        <div className="w-[140%] max-w-none h-[1000px] shrink-0 scale-[.55] sm:scale-75 lg:scale-100">
+          <div
+            style={{ transform: "rotateX(55deg) rotateY(0deg) rotateZ(-45deg)" }}
+            className="relative top-72 right-[50%] grid size-full origin-top-left grid-cols-4 gap-8 transform-3d"
           >
-            <Image
-              src={item.src}
-              alt={item.name}
-              fill
-              className="object-cover"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <motion.div
-              className="absolute bottom-4 left-4 text-white text-xl font-semibold"
-              animate={{
-                opacity: hoveredIndex === index ? 1 : 0.8,
-                y: hoveredIndex === index ? -4 : 0,
-              }}
-            >
-              {item.name}
-            </motion.div>
-          </motion.div>
-        ))}
-      </motion.div>
+            {chunks.map((subarray, colIndex) => (
+              <motion.div
+                key={colIndex + "marquee"}
+                animate={{ y: colIndex % 2 === 0 ? 80 : -80 }}
+                transition={{ duration: colIndex % 2 === 0 ? 8 : 12, repeat: Infinity, repeatType: "reverse" }}
+                className="flex flex-col items-start gap-8"
+              >
+                <GridLineVertical className="-left-4" offset="80px" />
+                {subarray.map((image, imageIndex) => {
+                  const name = names[labelIndex++] ?? undefined;
+                  return (
+                    <div className="relative" key={imageIndex + image}>
+                      <GridLineHorizontal className="-top-4" offset="20px" />
+                      <div className="relative">
+                        <motion.img
+                          whileHover={{ y: -10 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                          src={image}
+                          alt={name || `Image ${imageIndex + 1}`}
+                          className="aspect-[970/700] rounded-lg object-cover ring ring-gray-950/5 hover:shadow-2xl"
+                          width={970}
+                          height={700}
+                          onError={(e) => {
+                            const img = e.currentTarget as HTMLImageElement;
+                            if (!img.src.endsWith("fallback.svg")) {
+                              img.src = FALLBACK_SRC;
+                            }
+                          }}
+                        />
+                        {name && (
+                          <div className="absolute inset-x-0 top-0 p-2">
+                            <span className="px-2 py-1 text-sm font-extrabold text-black bg-white/90 rounded-md shadow">
+                              {name}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
+
+const GridLineHorizontal = ({ className, offset }: { className?: string; offset?: string }) => {
+  return (
+    <div
+      style={{
+        "--background": "#ffffff",
+        "--color": "rgba(0, 0, 0, 0.2)",
+        "--height": "1px",
+        "--width": "5px",
+        "--fade-stop": "90%",
+        "--offset": offset || "200px",
+        "--color-dark": "rgba(255, 255, 255, 0.2)",
+        maskComposite: "exclude",
+      } as React.CSSProperties}
+      className={cn(
+        "absolute left-[calc(var(--offset)/2*-1)] h-[var(--height)] w-[calc(100%+var(--offset))]",
+        "bg-[linear-gradient(to_right,var(--color),var(--color)_50%,transparent_0,transparent)]",
+        "[background-size:var(--width)_var(--height)]",
+        "[mask:linear-gradient(to_left,var(--background)_var(--fade-stop),transparent),_linear-gradient(to_right,var(--background)_var(--fade-stop),transparent),_linear-gradient(black,black)]",
+        "[mask-composite:exclude]",
+        "z-30",
+        "dark:bg-[linear-gradient(to_right,var(--color-dark),var(--color-dark)_50%,transparent_0,transparent)]",
+        className,
+      )}
+    />
+  );
+};
+
+const GridLineVertical = ({ className, offset }: { className?: string; offset?: string }) => {
+  return (
+    <div
+      style={{
+        "--background": "#ffffff",
+        "--color": "rgba(0, 0, 0, 0.2)",
+        "--height": "5px",
+        "--width": "1px",
+        "--fade-stop": "90%",
+        "--offset": offset || "150px",
+        "--color-dark": "rgba(255, 255, 255, 0.2)",
+        maskComposite: "exclude",
+      } as React.CSSProperties}
+      className={cn(
+        "absolute top-[calc(var(--offset)/2*-1)] h-[calc(100%+var(--offset))] w-[var(--width)]",
+        "bg-[linear-gradient(to_bottom,var(--color),var(--color)_50%,transparent_0,transparent)]",
+        "[background-size:var(--width)_var(--height)]",
+        "[mask:linear-gradient(to_top,var(--background)_var(--fade-stop),transparent),_linear-gradient(to_bottom,var(--background)_var(--fade-stop),transparent),_linear-gradient(black,black)]",
+        "[mask-composite:exclude]",
+        "z-30",
+        "dark:bg-[linear-gradient(to_bottom,var(--color-dark),var(--color-dark)_50%,transparent_0,transparent)]",
+        className,
+      )}
+    />
+  );
+};
