@@ -6,12 +6,13 @@ import { AuthModule } from './auth/auth.module';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CostEstimatorModule } from './cost-estimator/cost-estimator.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env',
+      envFilePath: '../.env',
     }),
     MongooseModule.forRoot(process.env.MONGO_URI || ''),
     GraphQLModule.forRoot<ApolloDriverConfig>({
@@ -22,6 +23,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     }),
     UserModule,
     AuthModule,
+    CostEstimatorModule,
   ],
   providers: [AppService],
 })
