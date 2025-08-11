@@ -10,6 +10,7 @@ import {
   User,
   Settings
 } from "lucide-react";
+import { AuthGuard } from "@/components/AuthGuard";
 
 export default function Home() {
   
@@ -117,7 +118,6 @@ export default function Home() {
 export default function Home() {
   return (
     <AuthGuard>
-      <Dashboard />
     </AuthGuard>
   );
 }
