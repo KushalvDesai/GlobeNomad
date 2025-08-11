@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CalendarDays, MapPin, Settings, User } from "lucide-react";
+import { CalendarDays, MapPin, Settings, User, LogOut } from "lucide-react";
 import { useMutation, useQuery } from "@apollo/client";
 import { GET_CITIES } from "@/graphql/queries";
 import { CREATE_TRIP } from "@/graphql/mutations";
@@ -60,6 +60,12 @@ export default function NewTripPage() {
     },
   });
 
+  const handleLogout = () => {
+    localStorage.removeItem("gn_token");
+    document.cookie = "gn_token=; path=/; max-age=0";
+    router.push("/login");
+  };
+
   return (
     <div className="min-h-screen bg-[#0b0b12] text-[#E6E8EB]">
       {/* Header */}
@@ -80,6 +86,13 @@ export default function NewTripPage() {
             </button>
             <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Account">
               <User className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="p-2 rounded-md hover:bg-[#14141c] text-red-400 hover:text-red-300" 
+              aria-label="Logout"
+            >
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -157,7 +170,7 @@ export default function NewTripPage() {
                 <label className="flex flex-col gap-2">
                   <span className="text-sm text-[#9AA0A6]">Start date</span>
                   <div className="relative">
-                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9AA0A6]" />
+                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" color="#9AA0A6" />
                     <input
                       type="date"
                       value={startDate}
@@ -171,7 +184,7 @@ export default function NewTripPage() {
                 <label className="flex flex-col gap-2">
                   <span className="text-sm text-[#9AA0A6]">End date</span>
                   <div className="relative">
-                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9AA0A6]" />
+                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" color="#9AA0A6" />
                     <input
                       type="date"
                       value={endDate}

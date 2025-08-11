@@ -10,7 +10,7 @@ import { setContext } from "@apollo/client/link/context";
 export function createApolloClient(): ApolloClient<any> {
   // Prefer explicit env; otherwise default to localhost:3000/graphql
   const graphqlUrl =
-    process.env.NEXT_PUBLIC_GRAPHQL_URL ?? "http://localhost:3000/graphql";
+    process.env.NEXT_PUBLIC_BACKEND_URL ?? "http://localhost:3000/graphql";
 
   const httpLink = new HttpLink({ uri: graphqlUrl, credentials: "include" });
 

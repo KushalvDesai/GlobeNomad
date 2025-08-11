@@ -4,13 +4,13 @@ import { onError } from '@apollo/client/link/error';
 
 // HTTP Link to GraphQL endpoint
 const httpLink = createHttpLink({
-  uri: process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:3000/graphql',
+  uri: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000/graphql',
 });
 
 // Auth link to add token to requests
 const authLink = setContext((_, { headers }) => {
   // Get the authentication token from local storage if it exists
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('gn_token') : null;
   
   // Return the headers to the context so httpLink can read them
   return {
@@ -38,8 +38,10 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
     if ('statusCode' in networkError && networkError.statusCode === 401) {
       // Token expired or invalid, clear local storage and redirect to login
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('token');
+        localStorage.removeItem('gn_token');
         localStorage.removeItem('user');
+        // Clear cookie
+        document.cookie = 'gn_token=; path=/; max-age=0';
         window.location.href = '/login';
       }
     }

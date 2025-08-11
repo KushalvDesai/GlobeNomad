@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { Settings, User } from "lucide-react";
+import { Settings, User, LogOut } from "lucide-react";
 import { useMutation } from "@apollo/client";
 import { CREATE_ITINERARY } from "@/graphql/mutations";
 
@@ -39,6 +39,12 @@ export default function BuildItineraryPage({ params }: { params: { id: string } 
 
   const [createItinerary, { loading: saving }] = useMutation(CREATE_ITINERARY);
 
+  const handleLogout = () => {
+    localStorage.removeItem("gn_token");
+    document.cookie = "gn_token=; path=/; max-age=0";
+    router.push("/login");
+  };
+
   return (
     <div className="min-h-screen bg-[#0b0b12] text-[#E6E8EB]">
       <header className="px-6 py-4 border-b border-[#2a2a35] sticky top-0 z-30 bg-[#0b0b12]/90 backdrop-blur">
@@ -52,6 +58,13 @@ export default function BuildItineraryPage({ params }: { params: { id: string } 
             </button>
             <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Account">
               <User className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="p-2 rounded-md hover:bg-[#14141c] text-red-400 hover:text-red-300" 
+              aria-label="Logout"
+            >
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
         </div>
