@@ -2,6 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
 import * as path from 'path';
 import axios from 'axios';
+import { BriefCostService } from '../ai-cost-service/brief-cost.service';
+import { StayType, MealType } from '../ai-cost-service/dto/brief-cost-estimate.dto';
+import { AiCostPreference, AiMealPreference } from './dto/ai-enhanced-trip-cost.dto';
 
 interface CityCoords {
   lat: number;
@@ -41,7 +44,7 @@ export class CostEstimatorService {
   private amadeusToken: string | null = null;
   private tokenExpiry: Date | null = null;
 
-  constructor() {
+  constructor(private readonly briefCostService: BriefCostService) {
     this.loadCityCSV();
     this.loadCityCostsCSV();
   }
@@ -596,7 +599,7 @@ export class CostEstimatorService {
         selectedMode = travelMode as 'train' | 'bus' | 'flight';
       }
       
-      // Calculate costs using Amadeus integration for flights
+      // Calculate travel cost using Amadeus integration for flights
       const travelCost = await this.calculateTravelCostWithAmadeus(
         distanceKm, 
         travelers, 
@@ -895,6 +898,173 @@ export class CostEstimatorService {
       }
     } catch (error) {
       return `ERROR: ${error.message}`;
+    }
+  }
+
+  // Convert AI preferences to brief cost service types
+  private mapAiPreferenceToStayType(preference: AiCostPreference): StayType {
+    switch (preference) {
+      case AiCostPreference.BUDGET_FRIENDLY:
+        return StayType.BUDGET_FRIENDLY;
+      case AiCostPreference.COMFORT_STAY:
+        return StayType.COMFORT_STAY;
+      case AiCostPreference.LUXURY:
+        return StayType.LUXURY;
+      default:
+        return StayType.COMFORT_STAY;
+    }
+  }
+
+  private mapAiPreferenceToMealType(preference: AiMealPreference): MealType {
+    switch (preference) {
+      case AiMealPreference.BUDGET_FRIENDLY:
+        return MealType.BUDGET_FRIENDLY;
+      case AiMealPreference.CASUAL_DINING:
+        return MealType.CASUAL_DINING;
+      case AiMealPreference.FINE_DINING:
+        return MealType.FINE_DINING;
+      default:
+        return MealType.CASUAL_DINING;
+    }
+  }
+
+  // AI-powered hotel and meal cost estimation
+  async getAiPoweredHotelAndMealCosts(
+    city: string,
+    accommodationPreference: AiCostPreference,
+    mealPreference: AiMealPreference,
+    additionalContext?: string
+  ): Promise<{
+    hotelCostPerNight: number;
+    mealCostPerPersonPerDay: number;
+    aiInsights: string;
+    costMethod: string;
+  }> {
+    try {
+      const stayType = this.mapAiPreferenceToStayType(accommodationPreference);
+      const mealType = this.mapAiPreferenceToMealType(mealPreference);
+
+      this.logger.log(`Getting AI-powered costs for ${city} - Stay: ${stayType}, Meal: ${mealType}`);
+
+      const aiCostEstimate = await this.briefCostService.getAiDrivenCostWithContext(
+        city,
+        stayType,
+        mealType,
+        additionalContext
+      );
+
+      return {
+        hotelCostPerNight: aiCostEstimate.hotelCostPerNight,
+        mealCostPerPersonPerDay: aiCostEstimate.mealCostPerPersonPerDay,
+        aiInsights: aiCostEstimate.briefSummary,
+        costMethod: 'AI_POWERED'
+      };
+    } catch (error) {
+      this.logger.error(`Error getting AI-powered costs for ${city}: ${error.message}`);
+      
+      // Fallback to existing CSV/API method
+      this.logger.log(`Falling back to CSV/API method for ${city}`);
+      const hotelCostPerNight = await this.getHotelPrice(city);
+      const mealCostPerPersonPerDay = await this.getMealCost(city);
+
+      return {
+        hotelCostPerNight,
+        mealCostPerPersonPerDay,
+        aiInsights: `Cost estimate for ${city} using traditional data sources. AI estimation was unavailable.`,
+        costMethod: 'CSV_FALLBACK'
+      };
+    }
+  }
+
+  // Enhanced trip cost estimation with AI integration
+  async estimateAiEnhancedTripCost(
+    originCity: string,
+    destCity: string,
+    days: number,
+    travelers: number,
+    accommodationPreference: AiCostPreference,
+    mealPreference: AiMealPreference,
+    travelMode?: 'train' | 'bus' | 'flight' | 'auto',
+    originCountry?: string,
+    destinationCountry?: string,
+    additionalContext?: string
+  ): Promise<{ 
+    distanceKm: number; 
+    travelCost: number;
+    hotelCost: number; 
+    mealCost: number; 
+    totalCost: number;
+    selectedTravelMode: string;
+    tripType: string;
+    aiHotelCostPerNight: number;
+    aiMealCostPerPersonPerDay: number;
+    aiInsights: string;
+    costMethod: string;
+  }> {
+    try {
+      const origin = await this.getCityCoordinates(originCity);
+      const destination = await this.getCityCoordinates(destCity);
+  
+      const distanceKm = await this.getDistanceKm(origin, destination);
+      
+      // Determine countries if not provided
+      const originCountryFinal = originCountry || this.getCityCountry(originCity);
+      const destinationCountryFinal = destinationCountry || this.getCityCountry(destCity);
+      
+      // Determine if trip is international
+      const isInternational = originCountryFinal.toLowerCase() !== destinationCountryFinal.toLowerCase();
+      const tripType = isInternational ? 'international' : 'domestic';
+      
+      // Auto-select travel mode if not specified or if 'auto' is selected
+      let selectedMode: 'train' | 'bus' | 'flight';
+      if (!travelMode || travelMode === 'auto') {
+        selectedMode = this.selectTravelMode(distanceKm, isInternational);
+      } else {
+        selectedMode = travelMode as 'train' | 'bus' | 'flight';
+      }
+      
+      // Calculate travel cost using existing method with Amadeus integration
+      const travelCost = await this.calculateTravelCostWithAmadeus(
+        distanceKm, 
+        travelers, 
+        selectedMode, 
+        originCountryFinal, 
+        destinationCountryFinal,
+        originCity,
+        destCity
+      );
+      
+      // Get AI-powered hotel and meal costs
+      const aiCosts = await this.getAiPoweredHotelAndMealCosts(
+        destCity,
+        accommodationPreference,
+        mealPreference,
+        additionalContext
+      );
+  
+      // Calculate total costs for all travelers and all days
+      const hotelCost = parseFloat((aiCosts.hotelCostPerNight * days).toFixed(2)); // Hotel cost (assuming shared rooms)
+      const mealCost = parseFloat((aiCosts.mealCostPerPersonPerDay * days * travelers).toFixed(2)); // Meal cost for all travelers
+      const totalCost = parseFloat((travelCost + hotelCost + mealCost).toFixed(2));
+  
+      this.logger.log(`AI-Enhanced trip cost calculated: ${originCity} to ${destCity}, ${distanceKm}km, ${tripType} ${selectedMode}, ₹${totalCost} total for ${travelers} travelers (${aiCosts.costMethod})`);
+  
+      return {
+        distanceKm,
+        travelCost,
+        hotelCost,
+        mealCost,
+        totalCost,
+        selectedTravelMode: selectedMode,
+        tripType,
+        aiHotelCostPerNight: aiCosts.hotelCostPerNight,
+        aiMealCostPerPersonPerDay: aiCosts.mealCostPerPersonPerDay,
+        aiInsights: aiCosts.aiInsights,
+        costMethod: aiCosts.costMethod,
+      };
+    } catch (error) {
+      this.logger.error(`Error estimating AI-enhanced trip cost: ${error.message}`);
+      throw error;
     }
   }
 }
