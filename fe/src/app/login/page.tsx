@@ -12,7 +12,6 @@ import { GuestGuard } from "@/components/GuestGuard";
 import { GlobeWrapper } from "@/components/GlobeWrapper";
 import { GlobeConfig } from "@/components/Globe";
 import { Eye, EyeOff } from "lucide-react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 const loginSchema = z.object({
@@ -54,18 +53,18 @@ const sampleArcs = [
 
 const globeConfig: GlobeConfig = {
   pointSize: 4,
-  globeColor: "#4B5563",               // Neutral slate gray - works with light & dark
+  globeColor: "#4B5563",
   showAtmosphere: true,
-  atmosphereColor: "#E5E7EB",          // Soft warm gray glow instead of stark white
-  atmosphereAltitude: 0.08,            // Slightly lower for subtlety
-  emissive: "#4B5563",                  // Same as globe for cohesion
-  emissiveIntensity: 0.08,              // Low intensity to avoid overpowering
-  shininess: 0.6,                       // Slightly reduced for softer highlights
-  polygonColor: "rgba(255, 255, 255, 0.3)", // Very subtle polygons
-  ambientLight: "#CBD5E1",              // Soft desaturated light
-  directionalLeftLight: "#F3F4F6",      // Light gray for gentle highlights
-  directionalTopLight: "#F3F4F6",       // Same to keep consistent lighting
-  pointLight: "#F3F4F6",                // Matches highlight tone
+  atmosphereColor: "#E5E7EB",
+  atmosphereAltitude: 0.08,
+  emissive: "#4B5563",
+  emissiveIntensity: 0.08,
+  shininess: 0.6,
+  polygonColor: "rgba(255, 255, 255, 0.3)",
+  ambientLight: "#CBD5E1",
+  directionalLeftLight: "#F3F4F6",
+  directionalTopLight: "#F3F4F6",
+  pointLight: "#F3F4F6",
   arcTime: 1000,
   arcLength: 0.9,
   rings: 1,
@@ -79,7 +78,6 @@ export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
   const [loginUser, { loading, error }] = useMutation(LOGIN_USER);
-  const [profileImage, setProfileImage] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -90,17 +88,6 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfileImage(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const onSubmit = async (data: LoginFormData) => {
     try {
       const result = await loginUser({
@@ -109,8 +96,9 @@ export default function LoginPage() {
         },
       });
 
-      if (result.data?.loginUser?.token) {
-        login(result.data.loginUser.token);
+      // Fixed: Changed from loginUser to login
+      if (result.data?.login?.token) {
+        login(result.data.login.token);
         router.push("/");
       }
     } catch (err) {
@@ -136,7 +124,6 @@ export default function LoginPage() {
               </h1>
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-
                 {/* Email Field */}
                 <div>
                   <input
@@ -195,11 +182,7 @@ export default function LoginPage() {
                   Don't have an account?{" "}
                   <button
                     type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      console.log("Navigating to register page...");
-                      router.push("/register");
-                    }}
+                    onClick={() => router.push("/register")}
                     className="text-white hover:text-white/80 underline font-medium"
                   >
                     Sign up here

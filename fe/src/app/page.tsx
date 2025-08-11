@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { ThreeDMarquee, type ThreeDMarqueeItem } from "@/components/ui/aceternity/three-d-marquee";
+import { ThreeDMarquee, type ThreeDMarqueeItem } from "@/components/3d-marquee";
 import { 
   Search, 
   SlidersHorizontal, 
@@ -10,10 +10,8 @@ import {
   User,
   Settings
 } from "lucide-react";
-import { AuthGuard } from "@/components/AuthGuard";
 
 export default function Home() {
-  
   // Cities with local assets in public/assets/cities (filenames and case must match exactly)
   const cities = [
     { name: "Agra", src: "assets/cities/agra.jpg" },
@@ -112,12 +110,5 @@ export default function Home() {
         </button>
       </motion.div>
     </div>
-  );
-}
-
-export default function Home() {
-  return (
-    <AuthGuard>
-    </AuthGuard>
   );
 }

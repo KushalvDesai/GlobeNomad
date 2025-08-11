@@ -4,6 +4,9 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  phoneNumber?: string;
+  city?: string;
+  country?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -14,14 +17,21 @@ export interface CreateUserInput {
   firstName: string;
   lastName: string;
   password: string;
+  phoneNumber?: string;
   city?: string;
   country?: string;
-  phoneNumber?: string;
-  additionalInfo?: string;
 }
 
 export interface LoginInput {
   email: string;
+  password: string;
+}
+
+export interface SignupInput {
+  name: string;
+  email: string;
+  firstName: string;
+  lastName: string;
   password: string;
 }
 
