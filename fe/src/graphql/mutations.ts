@@ -116,3 +116,19 @@ export const CREATE_ITINERARY = gql`
     }
   }
 `;
+
+// Trips
+export const CREATE_TRIP = gql`
+  mutation CreateTrip($input: CreateTripInput!) {
+    createTrip(createTripInput: $input) {
+      id
+      title
+      description
+      startDate
+      endDate
+      currency
+      owner { id }
+      createdAt
+    }
+  }
+`;

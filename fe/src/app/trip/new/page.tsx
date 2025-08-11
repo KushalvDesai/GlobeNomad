@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CalendarDays, MapPin, Settings, User } from "lucide-react";
-import { useQuery } from "@apollo/client";
+import { useMutation, useQuery } from "@apollo/client";
 import { GET_CITIES } from "@/graphql/queries";
+import { CREATE_TRIP } from "@/graphql/mutations";
 import Fuse from "fuse.js";
 
 export default function NewTripPage() {
@@ -49,6 +50,15 @@ export default function NewTripPage() {
     { name: "Mumbai", src: "/assets/cities/mumbai.jpg" },
     { name: "Sikkim", src: "/assets/cities/sikkim.jpeg" },
   ];
+
+  const [createTrip, { loading: creating }] = useMutation(CREATE_TRIP, {
+    onCompleted: (res: any) => {
+      const id: string | undefined = res?.createTrip?.id;
+      if (id) {
+        router.push(`/trip/${id}/itinerary`);
+      }
+    },
+  });
 
   return (
     <div className="min-h-screen bg-[#0b0b12] text-[#E6E8EB]">
@@ -175,14 +185,32 @@ export default function NewTripPage() {
 
               <div className="mt-4 flex justify-end">
                 <button
-                  disabled={!canSubmit}
-                  onClick={() => {
-                    const qs = new URLSearchParams({ destination, start: startDate, end: endDate }).toString();
-                    router.push(`/trip/itinerary?${qs}`);
+                  disabled={!canSubmit || creating}
+                  onClick={async () => {
+                    try {
+                      await createTrip({
+                        variables: {
+                          input: {
+                            title: destination,
+                            startDate: startDate || undefined,
+                            endDate: endDate || undefined,
+                          },
+                        },
+                      });
+                    } catch (err: any) {
+                      const message: string = err?.message || "";
+                      if (message.toLowerCase().includes("unauthorized") || message.toLowerCase().includes("jwt")) {
+                        const returnTo = encodeURIComponent(`/trip/new?destination=${encodeURIComponent(destination)}&start=${startDate}&end=${endDate}`);
+                        router.push(`/admin/login?returnTo=${returnTo}`);
+                        return;
+                      }
+                      console.error(err);
+                      alert("Failed to create trip. Please try again.");
+                    }
                   }}
                   className="px-4 py-2 rounded-md bg-[#c7a14a] disabled:opacity-50 text-white"
                 >
-                  Create Trip
+                  {creating ? "Creating…" : "Create Trip"}
                 </button>
               </div>
             </div>
