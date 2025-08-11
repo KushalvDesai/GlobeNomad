@@ -8,6 +8,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CostEstimatorModule } from './cost-estimator/cost-estimator.module';
+import { CitiesResolver } from './cities/cities.resolver';
 
 @Module({
   imports: [
@@ -27,6 +28,6 @@ import { CostEstimatorModule } from './cost-estimator/cost-estimator.module';
     TripModule,
     CostEstimatorModule
   ],
-  providers: [AppService],
+  providers: [AppService, CitiesResolver],
 })
 export class AppModule {}
