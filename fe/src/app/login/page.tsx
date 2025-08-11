@@ -140,6 +140,17 @@ export default function LoginPage() {
               </div>
             </form>
 
+            {/* Forgot Password Link */}
+            <div className="text-center mt-4">
+              <button
+                type="button"
+                onClick={() => router.push("/forgot-password")}
+                className="text-[#9AA0A6] hover:text-[#27C3FF] transition-colors text-sm"
+              >
+                Forgot your password?
+              </button>
+            </div>
+
             {/* Register Link */}
             <div className="text-center mt-6">
               <p className="text-[#9AA0A6]">
