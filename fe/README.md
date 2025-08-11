@@ -118,6 +118,12 @@ Interactive carousel component with auto-play, navigation arrows, and dots.
 - `npm run start`: Start production server
 - `npm run lint`: Run ESLint
 
+If your backend GraphQL runs on a different port, configure the endpoint with an env var in `fe/.env.local`:
+
+```bash
+NEXT_PUBLIC_GRAPHQL_URL=http://localhost:3000/graphql
+```
+
 ## Deployment
 
 The application is ready for deployment on Vercel, Netlify, or any other hosting platform that supports Next.js.
