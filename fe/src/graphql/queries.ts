@@ -49,3 +49,10 @@ export const GET_USER_PROFILE = gql`
     }
   }
 `;
+
+// Cities list for search suggestions
+export const GET_CITIES = gql`
+  query GetCities {
+    getCities
+  }
+`;

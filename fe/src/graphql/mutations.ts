@@ -89,3 +89,30 @@ export const REFRESH_TOKEN = gql`
     }
   }
 `;
+
+// Itinerary
+export const CREATE_ITINERARY = gql`
+  mutation CreateItinerary($createItineraryInput: CreateItineraryInput!) {
+    createItinerary(createItineraryInput: $createItineraryInput) {
+      id
+      items {
+        id
+        day
+        order
+        stop {
+          id
+          name
+          city
+          latitude
+          longitude
+          description
+          type
+        }
+        startTime
+        endTime
+        notes
+      }
+      notes
+    }
+  }
+`;
