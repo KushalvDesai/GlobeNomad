@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self' 'nonce-yqg0yMp3IGg=' cdn.jsdelivr.net js.sentry-cdn.com browser.sentry-cdn.com *.sentry.io challenges.cloudflare.com https://api.stripe.com https://maps.googleapis.com https://*.js.stripe.com https://js.stripe.com; connect-src 'self' cdn.jsdelivr.net js.sentry-cdn.com browser.sentry-cdn.com *.sentry.io challenges.cloudflare.com https://api.stripe.com https://maps.googleapis.com https://*.js.stripe.com https://js.stripe.com;"
+            value: "default-src 'self' 'unsafe-eval' 'unsafe-inline' cdn.jsdelivr.net js.sentry-cdn.com browser.sentry-cdn.com *.sentry.io challenges.cloudflare.com https://api.stripe.com https://maps.googleapis.com https://*.js.stripe.com https://js.stripe.com; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self' cdn.jsdelivr.net js.sentry-cdn.com browser.sentry-cdn.com *.sentry.io challenges.cloudflare.com https://api.stripe.com https://maps.googleapis.com https://*.js.stripe.com https://js.stripe.com; worker-src 'self' blob:;"
           }
         ]
       }
