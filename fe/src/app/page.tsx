@@ -1,103 +1,115 @@
-import Image from "next/image";
+"use client";
+import { motion } from "framer-motion";
+import { ThreeDMarquee, type ThreeDMarqueeItem } from "@/components/ui/aceternity/three-d-marquee";
+import { 
+  Search, 
+  SlidersHorizontal, 
+  ArrowUpDown, 
+  Users, 
+  Plus,
+  User,
+  Settings
+} from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  
+  // Cities with local assets in public/assets/cities (filenames and case must match exactly)
+  const cities = [
+    { name: "Agra", src: "assets/cities/agra.jpg" },
+    { name: "Bengaluru", src: "assets/cities/bengaluru.webp" },
+    { name: "Delhi", src: "assets/cities/delhi.jpg" },
+    { name: "Hyderabad", src: "assets/cities/hyderabad.jfif" },
+    { name: "Jaipur", src: "assets/cities/jaipur.jfif" },
+    { name: "Kolkata", src: "assets/cities/kolkata.jfif" },
+    { name: "Mumbai", src: "assets/cities/Mumbai.jpg" },
+    { name: "Pune", src: "assets/cities/pune.jfif" },
+    { name: "Ahmedabad", src: "assets/cities/ahmedabad.webp" },
+    { name: "Chennai", src: "assets/cities/chennai.jpg" },
+    { name: "Chandigarh", src: "assets/cities/chandigarh.webp" },
+    { name: "Lucknow", src: "assets/cities/lucknow.jfif" },
+    { name: "Bhopal", src: "assets/cities/bhopal.jfif" },
+    { name: "Indore", src: "assets/cities/indore.jpg" }
+  ];
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Repeat to fill the 3D grid nicely
+  const repeatedCities = Array.from({ length: 2 }, () => cities).flat();
+
+  const marqueeData: ThreeDMarqueeItem[] = repeatedCities.map((c) => ({
+    src: c.src,
+    name: c.name,
+  }));
+
+  return (
+    <div className="min-h-screen bg-[#0b0b12] text-[#E6E8EB]">
+      {/* Header */}
+      <header className="px-6 py-4 border-b border-[#2a2a35] sticky top-0 z-30 bg-[#0b0b12]/90 backdrop-blur">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="text-sm text-[#9AA0A6]">Main Landing Page (Screen 3)</div>
+          <h1 className="text-2xl font-semibold text-white">GlobeNormad</h1>
+          <div className="flex items-center gap-3">
+            <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Settings">
+              <Settings className="w-5 h-5" />
+            </button>
+            <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Account">
+              <User className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="px-6 py-8">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Banner replaced with 3D Marquee: edge-to-edge to match navbar width */}
+          <section className="-mx-6 md:mx-0">
+            <div className="rounded-3xl bg-gray-950/5 ring-1 ring-neutral-700/10 dark:bg-neutral-800 overflow-hidden">
+              <ThreeDMarquee items={marqueeData} className="h-[560px] w-full" />
+            </div>
+          </section>
+
+          {/* Search and Controls */}
+          <section>
+            <div className="flex flex-col md:flex-row items-stretch gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6] w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search destinations, activities, or trips..."
+                  className="w-full pl-10 pr-4 py-3 rounded-md bg-[#0f0f17] border border-[#2a2a35] text-[#E6E8EB] placeholder-[#9AA0A6] focus:outline-none focus:ring-2 focus:ring-[#27C3FF]"
+                />
+              </div>
+              <div className="flex gap-3 shrink-0">
+                <button className="px-4 py-3 rounded-md bg-[#15151f] border border-[#2a2a35] text-[#E6E8EB] hover:bg-[#1a1a26] flex items-center gap-2">
+                  <Users className="w-4 h-4" />
+                  <span>Group by</span>
+                </button>
+                <button className="px-4 py-3 rounded-md bg-[#15151f] border border-[#2a2a35] text-[#E6E8EB] hover:bg-[#1a1a26] flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4" />
+                  <span>Filter</span>
+                </button>
+                <button className="px-4 py-3 rounded-md bg-[#15151f] border border-[#2a2a35] text-[#E6E8EB] hover:bg-[#1a1a26] flex items-center gap-2">
+                  <ArrowUpDown className="w-4 h-4" />
+                  <span>Sort by</span>
+                </button>
+              </div>
+            </div>
+          </section>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      {/* Floating Action Button */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="fixed bottom-6 right-6 z-20"
+      >
+        <button className="px-5 py-3 rounded-full text-white shadow-lg hover:brightness-110 flex items-center gap-2"
+          style={{ background: "linear-gradient(90deg, var(--accent-1), var(--accent-2))" }}>
+          <Plus className="w-5 h-5" />
+          <span>Plan a trip</span>
+        </button>
+      </motion.div>
     </div>
   );
 }
