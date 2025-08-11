@@ -56,7 +56,15 @@ export default function NewTripPage() {
     onCompleted: (res: any) => {
       const id: string | undefined = res?.createTrip?.id;
       if (id) {
-        router.push(`/trip/${id}/itinerary`);
+        // Pass the first city and start date as query parameters
+        const params = new URLSearchParams();
+        if (destination) params.set('firstCity', destination);
+        if (startDate) params.set('startDate', startDate);
+        
+        const queryString = params.toString();
+        const url = `/trip/${id}/itinerary${queryString ? `?${queryString}` : ''}`;
+        console.log('Navigating to:', url, { destination, startDate });
+        router.push(url);
       }
     },
   });
@@ -216,7 +224,7 @@ export default function NewTripPage() {
                     try {
                       await createTrip({
                         variables: {
-                          input: {
+                          createTripInput: {
                             title: destination,
                             description: description || undefined,
                             startDate: startDate || undefined,
