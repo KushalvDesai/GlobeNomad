@@ -40,11 +40,19 @@ export class User {
 
   @Prop()
   @Field()
-  createdAt: Date;
-
-  @Prop()
-  @Field()
   updatedAt: Date;
+
+  @Prop({ required: false })
+  @Field({ nullable: true })
+  phoneNumber?: string;
+
+  @Prop({ required: true })
+  @Field()
+  city: string;
+
+  @Prop({ required: true })
+  @Field()
+  country: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -16,4 +16,13 @@ export class CreateUserDto {
 
   @Field({ nullable: true })
   lastName?: string;
+
+  @Field({ nullable: true })
+  phoneNumber?: string;
+
+  @Field()
+  city: string;
+
+  @Field()
+  country: string;
 }
