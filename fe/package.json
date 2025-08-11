@@ -12,9 +12,13 @@
     "@apollo/client": "^3.13.9",
     "@clerk/nextjs": "^6.30.0",
     "@hookform/resolvers": "^5.2.1",
+    "@react-three/drei": "^10.6.1",
+    "@react-three/fiber": "^9.0.0-alpha.8",
+    "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "graphql": "^16.11.0",
+    "lucide-react": "^0.539.0",
     "mongoose": "^8.17.1",
     "next": "15.4.6",
     "react": "19.1.0",
@@ -22,6 +26,9 @@
     "react-hook-form": "^7.62.0",
     "recharts": "^3.1.2",
     "shadcn": "^2.10.0",
+    "tailwind-merge": "^3.3.1",
+    "three": "^0.179.1",
+    "three-globe": "^2.44.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
