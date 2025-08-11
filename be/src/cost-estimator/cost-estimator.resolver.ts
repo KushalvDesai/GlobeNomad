@@ -1,6 +1,6 @@
 import { Resolver, Mutation, Args } from '@nestjs/graphql';
 import { CostEstimatorService } from './cost-estimator.service';
-import { TripCostInput, TripCostEstimate } from './dto/estimate-trip-cost.dto';
+import { TripCostInput, TripCostEstimate, TravelMode } from './dto/estimate-trip-cost.dto';
 
 @Resolver(() => TripCostEstimate)
 export class CostEstimatorResolver {
@@ -15,6 +15,9 @@ export class CostEstimatorResolver {
       tripCostInput.destinationCity,
       tripCostInput.days,
       tripCostInput.travelers,
+      tripCostInput.travelMode === TravelMode.AUTO ? 'auto' : tripCostInput.travelMode,
+      tripCostInput.originCountry,
+      tripCostInput.destinationCountry,
     );
 
     return {
@@ -27,6 +30,17 @@ export class CostEstimatorResolver {
       destinationCity: tripCostInput.destinationCity,
       days: tripCostInput.days,
       travelers: tripCostInput.travelers,
+      selectedTravelMode: result.selectedTravelMode as TravelMode,
+      tripType: result.tripType,
     };
+  }
+
+  @Mutation(() => String)
+  async testAmadeusFlightPrice(
+    @Args('originCity') originCity: string,
+    @Args('destinationCity') destinationCity: string,
+    @Args('travelers', { defaultValue: 1 }) travelers: number,
+  ): Promise<string> {
+    return await this.costEstimatorService.testAmadeusFlightPrice(originCity, destinationCity, travelers);
   }
 }

@@ -40,6 +40,7 @@ export class UserService {
         { ...updateData, updatedAt: new Date() },
         { new: true },
       )
+      .populate('_id')
       .exec();
   }
 

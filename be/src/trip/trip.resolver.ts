@@ -2,8 +2,13 @@ import { Resolver, Query, Mutation, Args, Context, ID } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { TripService } from './trip.service';
 import { Trip } from './schema/trip.schema';
+import { Itinerary } from './schema/itinerary.schema';
 import { CreateTripInput } from './dto/create-trip.input';
 import { UpdateTripInput } from './dto/update-trip.input';
+import { CreateItineraryInput } from './dto/create-itinerary.input';
+import { UpdateItineraryInput } from './dto/update-itinerary.input';
+import { ReorderItineraryInput } from './dto/reorder-itinerary.input';
+import { AddStopToTripInput } from './dto/add-stop.input';
 import { TripsResponse } from './dto/trips-response.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -87,5 +92,69 @@ export class TripResolver {
     // For now, we'll return a mock estimate
     const mockEstimate = Math.floor(Math.random() * 5000) + 1000; // Random estimate between 1000-6000
     return this.tripService.updateBudgetEstimate(tripId, mockEstimate, context.req.user.id);
+  }
+
+  // Itinerary Management Queries
+  @Query(() => Itinerary)
+  @UseGuards(JwtAuthGuard)
+  async getItinerary(
+    @Args('tripId', { type: () => ID }) tripId: string,
+    @Context() context,
+  ): Promise<Itinerary> {
+    return this.tripService.getItinerary(tripId, context.req.user.id);
+  }
+
+  @Query(() => Itinerary, { nullable: true })
+  async getPublicItinerary(
+    @Args('tripId', { type: () => ID }) tripId: string,
+  ): Promise<Itinerary> {
+    return this.tripService.getItinerary(tripId);
+  }
+
+  // Itinerary Management Mutations
+  @Mutation(() => Itinerary)
+  @UseGuards(JwtAuthGuard)
+  async createItinerary(
+    @Args('createItineraryInput') createItineraryInput: CreateItineraryInput,
+    @Context() context,
+  ): Promise<Itinerary> {
+    return this.tripService.createItinerary(createItineraryInput, context.req.user.id);
+  }
+
+  @Mutation(() => Itinerary)
+  @UseGuards(JwtAuthGuard)
+  async updateItinerary(
+    @Args('updateItineraryInput') updateItineraryInput: UpdateItineraryInput,
+    @Context() context,
+  ): Promise<Itinerary> {
+    return this.tripService.updateItinerary(updateItineraryInput, context.req.user.id);
+  }
+
+  @Mutation(() => Itinerary)
+  @UseGuards(JwtAuthGuard)
+  async reorderItineraryItems(
+    @Args('reorderInput') reorderInput: ReorderItineraryInput,
+    @Context() context,
+  ): Promise<Itinerary> {
+    return this.tripService.reorderItineraryItems(reorderInput, context.req.user.id);
+  }
+
+  @Mutation(() => Itinerary)
+  @UseGuards(JwtAuthGuard)
+  async addStopToTrip(
+    @Args('addStopInput') addStopInput: AddStopToTripInput,
+    @Context() context,
+  ): Promise<Itinerary> {
+    return this.tripService.addStopToTrip(addStopInput, context.req.user.id);
+  }
+
+  @Mutation(() => Itinerary)
+  @UseGuards(JwtAuthGuard)
+  async removeStopFromTrip(
+    @Args('tripId', { type: () => ID }) tripId: string,
+    @Args('itemId', { type: () => ID }) itemId: string,
+    @Context() context,
+  ): Promise<Itinerary> {
+    return this.tripService.removeStopFromTrip(tripId, itemId, context.req.user.id);
   }
 }
