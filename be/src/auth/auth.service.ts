@@ -148,6 +148,8 @@ export class AuthService {
         name: user.name,
         firstName: user.firstName,
         lastName: user.lastName,
+        role: user.role,
+        phoneNumber: user.phoneNumber,
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid token');
