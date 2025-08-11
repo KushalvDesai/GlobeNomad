@@ -10,10 +10,6 @@ export class User {
   @Field()
   id: string;
 
-  @Prop({ required: true, unique: true })
-  @Field()
-  clerkId: string;
-
   @Prop({ required: true })
   @Field()
   name: string;
@@ -22,25 +18,29 @@ export class User {
   @Field()
   email: string;
 
-  @Prop()
-  @Field({ nullable: true })
-  firstName?: string;
-
-  @Prop()
-  @Field({ nullable: true })
-  lastName?: string;
-
-  @Prop()
-  @Field({ nullable: true })
-  imageUrl?: string;
-
-  @Prop()
-  @Field({ nullable: true })
-  rollNo?: string;
-
-  @Prop()
+  @Prop({ required: true })
   @Field()
-  createdAt: Date;
+  firstName: string;
+
+  @Prop({ required: true })
+  @Field()
+  lastName: string;
+
+  @Prop({ required: false })
+  @Field({ nullable: true })
+  password?: string;
+
+  @Prop()
+  @Field({ nullable: true })
+  passwordResetToken?: string;
+
+  @Prop()
+  @Field({ nullable: true })
+  passwordResetExpires?: Date;
+
+  // @Prop({ required: false })
+  // @Field({ nullable: true })
+  // clerkId?: string;
 
   @Prop()
   @Field()

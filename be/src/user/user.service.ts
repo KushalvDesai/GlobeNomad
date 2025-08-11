@@ -1,32 +1,32 @@
+
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from './schema/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
-import { AuthService } from '../auth/auth.service';
+import * as bcrypt from 'bcryptjs';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-    private authService: AuthService,
+    @InjectModel(User.name) public userModel: Model<UserDocument>,
   ) {}
 
   async findAll(): Promise<User[]> {
     return this.userModel.find().exec();
   }
 
+  
   async findOne(id: string): Promise<User | null> {
     return this.userModel.findById(id).exec();
   }
 
-  async findByClerkId(clerkId: string): Promise<User | null> {
-    return this.userModel.findOne({ clerkId }).exec();
-  }
-
   async create(createUserDto: CreateUserDto): Promise<User> {
+    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
     const createdUser = new this.userModel({
       ...createUserDto,
+      password: hashedPassword,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
@@ -47,7 +47,4 @@ export class UserService {
     return this.userModel.findByIdAndDelete(id).exec();
   }
 
-  async syncWithClerk(clerkUserId: string): Promise<User> {
-    return this.authService.syncUserFromClerk(clerkUserId);
-  }
 }
