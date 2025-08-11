@@ -38,13 +38,21 @@ export class User {
   @Field({ nullable: true })
   passwordResetExpires?: Date;
 
-  // @Prop({ required: false })
-  // @Field({ nullable: true })
-  // clerkId?: string;
-
   @Prop()
   @Field()
   updatedAt: Date;
+
+  @Prop({ required: false })
+  @Field({ nullable: true })
+  phoneNumber?: string;
+
+  @Prop({ required: true })
+  @Field()
+  city: string;
+
+  @Prop({ required: true })
+  @Field()
+  country: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
