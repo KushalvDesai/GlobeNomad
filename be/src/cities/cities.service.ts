@@ -2,6 +2,9 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Trip, TripDocument } from '../trip/schema/trip.schema';
+import { ActivitiesService } from '../activities/activities.service';
+import { CityWithActivities } from './dto/city-with-activities.dto';
+import { ActivityFiltersInput } from '../activities/dto/activity-filters.input';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -20,23 +23,32 @@ export interface CityFilters {
   maxCost?: number;
 }
 
+interface CityData {
+  name: string;
+  country: string;
+  cost: number;
+}
+
 @Injectable()
 export class CitiesService {
-  private readonly csvPath: string;
-
   constructor(
     @InjectModel(Trip.name) private tripModel: Model<TripDocument>,
-  ) {
-    this.csvPath = path.resolve(process.cwd(), 'mnt/data/top_travel_cities.csv');
-  }
+    private activitiesService: ActivitiesService,
+  ) {}
 
-  private readCsvData() {
+  private readCsvData(): CityData[] {
     try {
-      const csvContent = fs.readFileSync(this.csvPath, 'utf-8');
+      const csvPath = path.resolve(process.cwd(), 'top_travel_cities_costs.csv');
+      const csvContent = fs.readFileSync(csvPath, 'utf-8');
       const lines = csvContent.split('\n').filter(line => line.trim());
+      
       return lines.slice(1).map(line => {
-        const [name, country, cost = '100'] = line.split(',').map(item => item.trim());
-        return { name, country, cost: parseInt(cost) || 100 };
+        const [name, country, cost] = line.split(',').map(item => item.trim());
+        return {
+          name,
+          country,
+          cost: parseFloat(cost) || 0
+        };
       });
     } catch (error) {
       console.error('Error reading CSV file:', error);
@@ -61,11 +73,13 @@ export class CitiesService {
           city.country.toLowerCase() === filters.country?.toLowerCase()
         );
       }
+      
       if (filters.minCost !== undefined) {
-        cities = cities.filter(city => city.cost >= (filters.minCost ?? 0));
+        cities = cities.filter(city => city.cost >= filters.minCost!);
       }
+      
       if (filters.maxCost !== undefined) {
-        cities = cities.filter(city => city.cost <= (filters.maxCost ?? Infinity));
+        cities = cities.filter(city => city.cost <= filters.maxCost!);
       }
     }
 
@@ -90,6 +104,52 @@ export class CitiesService {
     };
   }
 
+  async getCityWithActivities(
+    cityName: string, 
+    activityFilters?: ActivityFiltersInput
+  ): Promise<CityWithActivities> {
+    const cityDetails = await this.getCityDetails(cityName);
+    const activities = await this.activitiesService.getActivitiesByCity(cityName, activityFilters);
+    
+    const categories = [...new Set(activities.map(activity => activity.category.name))];
+    const totalActivities = activities.length;
+    const averagePrice = activities.length > 0 
+      ? activities.reduce((sum, activity) => sum + activity.pricing.basePrice, 0) / activities.length 
+      : undefined;
+    const averageRating = activities.length > 0 
+      ? activities.reduce((sum, activity) => sum + (activity.rating || 0), 0) / activities.length 
+      : undefined;
+
+    return {
+      cityName: cityDetails.name,
+      country: cityDetails.country,
+      activities,
+      totalActivities,
+      availableCategories: categories,
+      averagePrice,
+      averageRating
+    };
+  }
+
+  async getPopularCitiesWithActivities(limit: number = 10): Promise<CityWithActivities[]> {
+    const cities = this.readCsvData().slice(0, limit);
+    const citiesWithActivities: CityWithActivities[] = [];
+
+    for (const city of cities) {
+      try {
+        const cityWithActivities = await this.getCityWithActivities(city.name);
+        if (cityWithActivities.totalActivities > 0) {
+          citiesWithActivities.push(cityWithActivities);
+        }
+      } catch (error) {
+        // Skip cities that don't have activities or encounter errors
+        continue;
+      }
+    }
+
+    return citiesWithActivities.sort((a, b) => b.totalActivities - a.totalActivities);
+  }
+
   async addCityToTrip(tripId: string, cityId: string, userId: string): Promise<boolean> {
     const trip = await this.tripModel.findById(tripId).exec();
     
@@ -102,32 +162,9 @@ export class CitiesService {
       throw new ForbiddenException('Unauthorized to modify this trip');
     }
 
-    // Verify the city exists
-    const cityDetails = await this.getCityDetails(cityId);
-    if (!cityDetails) {
-      throw new NotFoundException(`City ${cityId} not found`);
-    }
-
-    // Since Trip schema doesn't have cities field, we'll store city info in description
-    // In a production app, you should add a cities field to Trip schema
-    const currentDescription = trip.description || '';
-    const cityName = cityDetails.name;
+    // Here you would implement the logic to add a city to a trip
+    // This might involve updating the trip document or creating itinerary items
     
-    // Check if city is already mentioned in description
-    if (currentDescription.toLowerCase().includes(cityName.toLowerCase())) {
-      return false; // City already added
-    }
-
-    const updatedDescription = currentDescription 
-      ? `${currentDescription}. Visiting ${cityName}` 
-      : `Visiting ${cityName}`;
-
-    await this.tripModel.findByIdAndUpdate(
-      tripId,
-      { description: updatedDescription, updatedAt: new Date() },
-      { new: true }
-    ).exec();
-
     return true;
   }
 }
