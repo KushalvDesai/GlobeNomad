@@ -13,7 +13,7 @@ export function ThreeDMarquee({
 }) {
   const images = items.map((i) => i.src);
   const names = items.map((i) => i.name);
-  const FALLBACK_SRC = "assets/cities/fallback.svg";
+  const FALLBACK_SRC = "/assets/cities/fallback.svg";
 
   const chunkSize = Math.ceil(images.length / 4);
   const chunks = Array.from({ length: 4 }, (_, colIndex) => {
@@ -24,27 +24,27 @@ export function ThreeDMarquee({
   let labelIndex = 0;
 
   return (
-    <div className={cn("mx-auto block w-full h-[360px] overflow-hidden rounded-2xl", className)}>
+    <div className={cn("mx-auto block h-[600px] w-full overflow-hidden rounded-2xl max-sm:h-100", className)}>
       <div className="flex size-full items-center justify-center">
-        {/* use wide canvas so columns reach edges; scale adjusts vertical fit */}
-        <div className="w-[140%] max-w-none h-[1000px] shrink-0 scale-[.55] sm:scale-75 lg:scale-100">
+        {/* match Aceternity UI canvas sizing and scale */}
+        <div className="size-[1720px] shrink-0 scale-50 sm:scale-75 lg:scale-100">
           <div
             style={{ transform: "rotateX(55deg) rotateY(0deg) rotateZ(-45deg)" }}
-            className="relative top-72 right-[50%] grid size-full origin-top-left grid-cols-4 gap-8 transform-3d"
+            className="relative top-140 right-[50%] grid size-full origin-top-left grid-cols-4 gap-8"
           >
             {chunks.map((subarray, colIndex) => (
               <motion.div
                 key={colIndex + "marquee"}
-                animate={{ y: colIndex % 2 === 0 ? 80 : -80 }}
-                transition={{ duration: colIndex % 2 === 0 ? 8 : 12, repeat: Infinity, repeatType: "reverse" }}
+                animate={{ y: colIndex % 2 === 0 ? 100 : -100 }}
+                transition={{ duration: colIndex % 2 === 0 ? 10 : 15, repeat: Infinity, repeatType: "reverse" }}
                 className="flex flex-col items-start gap-8"
               >
-                <GridLineVertical className="-left-4" offset="80px" />
+                <GridLineVertical className="-left-4" offset="50px" />
                 {subarray.map((image, imageIndex) => {
                   const name = names[labelIndex++] ?? undefined;
                   return (
                     <div className="relative" key={imageIndex + image}>
-                      <GridLineHorizontal className="-top-4" offset="20px" />
+                      <GridLineHorizontal className="-top-4" offset="10px" />
                       <div className="relative">
                         <motion.img
                           whileHover={{ y: -10 }}
@@ -52,11 +52,12 @@ export function ThreeDMarquee({
                           src={image}
                           alt={name || `Image ${imageIndex + 1}`}
                           className="aspect-[970/700] rounded-lg object-cover ring ring-gray-950/5 hover:shadow-2xl"
-                          width={970}
+                          width={1000}
                           height={700}
                           onError={(e) => {
                             const img = e.currentTarget as HTMLImageElement;
                             if (!img.src.endsWith("fallback.svg")) {
+                              img.onerror = null;
                               img.src = FALLBACK_SRC;
                             }
                           }}
