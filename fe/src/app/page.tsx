@@ -13,6 +13,7 @@ import {
   Plus,
   User,
   Settings,
+  LogOut,
 } from "lucide-react";
 
 export default function Home() {
@@ -21,12 +22,33 @@ export default function Home() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [activeIndex, setActiveIndex] = useState<number>(-1);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { data } = useQuery<{ getCities: string[] }>(GET_CITIES);
   const cityOptions = data?.getCities ?? [];
+
+  // All useEffect hooks must be at the top level
   useEffect(() => {
     const id = setTimeout(() => setDebouncedSearch(search), 200);
     return () => clearTimeout(id);
   }, [search]);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem("gn_token") || 
+                   document.cookie.split(';').find(c => c.trim().startsWith('gn_token='));
+      
+      if (!token) {
+        setIsAuthenticated(false);
+        router.push("/login");
+        return;
+      }
+      setIsAuthenticated(true);
+    };
+
+    checkAuth();
+  }, [router]);
+
   const filteredCities = useMemo(() => {
     const q = debouncedSearch.trim().toLowerCase();
     if (!q) return [] as string[];
@@ -40,6 +62,25 @@ export default function Home() {
     },
     [router]
   );
+
+  const handleLogout = () => {
+    localStorage.removeItem("gn_token");
+    document.cookie = "gn_token=; path=/; max-age=0";
+    router.push("/login");
+  };
+
+  // Show loading or redirect if not authenticated
+  if (isAuthenticated === null) {
+    return (
+      <div className="min-h-screen bg-[#0b0b12] flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null; // Will redirect to login
+  }
   
   // Cities with local assets in public/assets/cities (filenames and case must match exactly)
   const cities = [
@@ -81,6 +122,13 @@ export default function Home() {
             </button>
             <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Account">
               <User className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="p-2 rounded-md hover:bg-[#14141c] text-red-400 hover:text-red-300" 
+              aria-label="Logout"
+            >
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
         </div>
