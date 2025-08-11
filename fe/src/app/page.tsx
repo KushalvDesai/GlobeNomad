@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "framer-motion";
-import { ThreeDMarquee, type ThreeDMarqueeItem } from "@/components/3d-marquee";
+import { ThreeDMarquee, type ThreeDMarqueeItem } from "@/app/components/3d-marquee";
 import { 
   Search, 
   SlidersHorizontal, 
