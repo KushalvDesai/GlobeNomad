@@ -240,7 +240,7 @@ This project was developed by a talented team of developers:
       <sub>Backend Developer</sub>
     </td>
     <td align="center">
-      <img src="https://github.com/aaleyaboxwala.png" width="100px;" alt="Aaleya Boxwala"/><br />
+      <img src="https://github.com/aaleya5.png" width="100px;" alt="Aaleya Boxwala"/><br />
       <sub><b>Aaleya Boxwala</b></sub><br />
       <sub>Frontend Developer</sub>
     </td>
