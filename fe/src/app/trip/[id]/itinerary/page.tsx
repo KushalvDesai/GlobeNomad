@@ -4,9 +4,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, use, useEffect } from "react";
 import { Settings, User, LogOut, Trash2, GripVertical, Plus, Calendar, MapPin, Save } from "lucide-react";
 import { useMutation, useQuery } from "@apollo/client";
-import { GET_TRIP, GET_CITIES, GET_ITINERARY } from "@/graphql/queries";
+import { GET_TRIP, GET_CITIES, GET_ITINERARY, GET_ACTIVITY_CATEGORIES } from "@/graphql/queries";
 import { CREATE_ITINERARY, UPDATE_ITINERARY, ADD_STOP_TO_TRIP, REMOVE_STOP_FROM_TRIP } from "@/graphql/mutations";
-import type { CreateItineraryInput, UpdateItineraryInput, AddStopToTripInput, Itinerary, ItineraryItem } from "@/graphql/types";
+import type { CreateItineraryInput, UpdateItineraryInput, AddStopToTripInput, Itinerary, ItineraryItem, ActivityCategory } from "@/graphql/types";
 import Fuse from "fuse.js";
 
 type StopDraft = {
@@ -18,10 +18,33 @@ type StopDraft = {
   endDate: string;
   activity: string;
   budget: string;
-  type: "attraction" | "destination" | "restaurant" | "hotel" | "activity";
+  type: "attraction" | "destination" | "restaurant" | "hotel" | "activity" | string;
 };
 
 export default function BuildItineraryPage({ params }: { params: Promise<{ id: string }> }) {
+  // Add Stop handler
+  const addStop = () => {
+    const defaultStartDate = tripStartDate || "";
+    const newStop: StopDraft = {
+      id: crypto.randomUUID(),
+      city: "",
+      name: "",
+      notes: "",
+      startDate: defaultStartDate,
+      endDate: "",
+      activity: "",
+      budget: "",
+      type: "destination"
+    };
+    setStops(prev => [...prev, newStop]);
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem("gn_token");
+    document.cookie = "gn_token=; path=/; max-age=0";
+    router.push("/login");
+  };
   const router = useRouter();
   const searchParams = useSearchParams();
   const { id } = use(params);
@@ -46,6 +69,9 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
     errorPolicy: 'ignore' // Ignore if itinerary doesn't exist yet
   });
   
+  // Fetch activity categories
+  const { data: categoriesData } = useQuery<{ getActivityCategories: ActivityCategory[] }>(GET_ACTIVITY_CATEGORIES);
+  
   // Mutations
   const [createItinerary] = useMutation(CREATE_ITINERARY);
   const [updateItinerary] = useMutation(UPDATE_ITINERARY);
@@ -60,6 +86,7 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
   } | undefined;
   
   const cityOptions = citiesData?.getCities ?? [];
+  const activityCategories = categoriesData?.getActivityCategories ?? [];
   const fuse = useMemo(() => new Fuse(cityOptions, { includeScore: true, threshold: 0.35 }), [cityOptions]);
   const [activeCityIndex, setActiveCityIndex] = useState<number>(-1);
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
@@ -188,6 +215,29 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
   }, [stops, tripDays]);
 
   const handleSaveItinerary = async () => {
+  // Add Stop handler
+  const addStop = () => {
+    const defaultStartDate = tripStartDate || "";
+    const newStop: StopDraft = {
+      id: crypto.randomUUID(),
+      city: "",
+      name: "",
+      notes: "",
+      startDate: defaultStartDate,
+      endDate: "",
+      activity: "",
+      budget: "",
+      type: "destination"
+    };
+    setStops(prev => [...prev, newStop]);
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem("gn_token");
+    document.cookie = "gn_token=; path=/; max-age=0";
+    router.push("/login");
+  };
     // Validate all stops before saving
     const errors = getValidationErrors();
     if (Object.keys(errors).length > 0) {
@@ -228,6 +278,8 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
         if (result.data?.updateItinerary) {
           setCurrentItinerary(result.data.updateItinerary);
           alert("Itinerary updated successfully!");
+          router.push(`/trip/${id}/view`);
+          return;
         }
       } else {
         // Create new itinerary
@@ -259,74 +311,16 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
         if (result.data?.createItinerary) {
           setCurrentItinerary(result.data.createItinerary);
           alert("Itinerary created successfully!");
-          
-          // Refetch to get the latest data
-          refetchItinerary();
+          router.push(`/trip/${id}/view`);
+          return;
         }
       }
-      
+
       console.log('Saved itinerary data:', summaryData);
-      
+
     } catch (error) {
       console.error("Error saving itinerary:", error);
       alert("Error saving itinerary. Please try again.");
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("gn_token");
-    document.cookie = "gn_token=; path=/; max-age=0";
-    router.push("/login");
-  };
-
-  const addStop = async () => {
-    // Use start date from query params if available, otherwise use trip start date
-    const defaultStartDate = startDateFromQuery || tripStartDate || "";
-    
-    const newStop: StopDraft = {
-      id: crypto.randomUUID(),
-      city: "",
-      name: "",
-      notes: "",
-      startDate: defaultStartDate,
-      endDate: "",
-      activity: "",
-      budget: "",
-      type: "destination"
-    };
-
-    // Add to local state immediately for UI responsiveness
-    setStops(prev => [...prev, newStop]);
-    
-    // If we have a backend itinerary, add the stop there too
-    if (currentItinerary) {
-      try {
-        const addStopInput: AddStopToTripInput = {
-          tripId: id,
-          day: 1, // Default day
-          order: stops.length, // Add at the end
-          stop: {
-            name: newStop.name || "New Stop",
-            city: newStop.city,
-            description: newStop.activity,
-            estimatedCost: parseFloat(newStop.budget) || 0,
-            type: newStop.type,
-            notes: newStop.notes,
-          }
-        };
-
-        const result = await addStopToTrip({
-          variables: { addStopInput }
-        });
-
-        if (result.data?.addStopToTrip) {
-          setCurrentItinerary(result.data.addStopToTrip);
-          refetchItinerary();
-        }
-      } catch (error) {
-        console.error("Error adding stop to backend:", error);
-        // Keep the local change even if backend fails
-      }
     }
   };
 
@@ -513,7 +507,7 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
               <h1 className="text-2xl font-bold">{trip?.title ?? "Build Itinerary"}</h1>
               {trip?.startDate && trip?.endDate && (
                 <p className="text-sm text-[#9AA0A6] mt-1">
-                  <Calendar className="w-4 h-4 inline mr-1" />
+                  <Calendar className="w-4 h-4 inline mr-1" color="white" />
                   {new Date(trip.startDate).toDateString()} - {new Date(trip.endDate).toDateString()}
                 </p>
               )}
@@ -561,7 +555,7 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
               <div
                 key={stop.id}
                 draggable
-                onDragStart={(e) => handleDragStart(e, stop.id)}
+      // Timeline preview permanently removed as requested
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, stop.id)}
                 className={`rounded-2xl border border-[#2a2a35] bg-[#0f0f17] p-6 transition-all ${
@@ -651,7 +645,10 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
                           onChange={(e) => updateStop(stop.id, { startDate: e.target.value })}
                           min={tripStartDate}
                           max={tripEndDate}
-                          className="w-full rounded-md bg-[#0b0b12] border border-[#2a2a35] p-3 focus:border-[#27C3FF] transition-colors"
+                          className="w-full rounded-md bg-[#0b0b12] border border-[#2a2a35] p-3 focus:border-[#27C3FF] transition-colors text-white [color-scheme:dark]"
+                          style={{
+                            colorScheme: 'dark'
+                          }}
                         />
                       </div>
                       <div>
@@ -662,7 +659,10 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
                           onChange={(e) => updateStop(stop.id, { endDate: e.target.value })}
                           min={stop.startDate || tripStartDate}
                           max={tripEndDate}
-                          className="w-full rounded-md bg-[#0b0b12] border border-[#2a2a35] p-3 focus:border-[#27C3FF] transition-colors"
+                          className="w-full rounded-md bg-[#0b0b12] border border-[#2a2a35] p-3 focus:border-[#27C3FF] transition-colors text-white [color-scheme:dark]"
+                          style={{
+                            colorScheme: 'dark'
+                          }}
                         />
                       </div>
                     </div>
@@ -697,11 +697,14 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
                         onChange={(e) => updateStop(stop.id, { type: e.target.value as StopDraft['type'] })}
                         className="w-full rounded-md bg-[#0b0b12] border border-[#2a2a35] p-3 focus:border-[#27C3FF] transition-colors"
                       >
-                        <option value="destination">Destination</option>
-                        <option value="attraction">Tourist Attraction</option>
-                        <option value="restaurant">Restaurant</option>
-                        <option value="hotel">Hotel</option>
-                        <option value="activity">Activity</option>
+                        <option value="activities">Activities</option>
+                        
+                        {/* Activity categories from backend */}
+                        {activityCategories.map((category) => (
+                          <option key={category.id} value={category.name.toLowerCase().replace(/\s+/g, '_')}>
+                            {category.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
@@ -746,7 +749,7 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
             </button>
           </div>
 
-          {/* Summary */}
+           {/* Summary */}
           {stops.length > 0 && (
             <div className="bg-[#0f0f17] border border-[#2a2a35] rounded-lg p-4">
               <h3 className="text-lg font-semibold mb-2">Itinerary Summary</h3>
@@ -784,6 +787,60 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
               </div>
             </div>
           )}
+
+           {/* Timeline preview using Aceternity UI Timeline */}
+           {/* {stops.length > 0 && (
+             <div className="bg-[#0f0f17] border border-[#2a2a35] rounded-lg p-4">
+               <h3 className="text-lg font-semibold mb-4">Timeline Preview</h3>
+               <Timeline
+                 data={(() => {
+                   const byDay: Record<string, typeof stops> = {};
+                   for (const s of stops) {
+                     const key = s.startDate || "Unscheduled";
+                     (byDay[key] ||= []).push(s);
+                   }
+                   const entries: TimelineEntry[] = Object.entries(byDay)
+                     .sort((a, b) => a[0].localeCompare(b[0]))
+                     .map(([day, arr]) => ({
+                       title:
+                         tripDays.length > 0 && day !== "Unscheduled"
+                           ? `Day ${tripDays.indexOf(day) + 1}`
+                           : day,
+                       content: (
+                         <div className="space-y-3">
+                           {arr.map((s, i) => (
+                             <div
+                               key={s.id}
+                               className="flex items-start justify-between gap-3 rounded-md border border-[#2a2a35] bg-[#0b0b12] p-3"
+                             >
+                               <div>
+                                 <div className="font-medium">
+                                   {s.name || s.activity || s.city || `Stop ${i + 1}`}
+                                 </div>
+                                 <div className="text-xs text-[#9AA0A6]">
+                                   {s.city || "Unknown city"}
+                                 </div>
+                                 {s.notes && <div className="text-sm mt-1">{s.notes}</div>}
+                               </div>
+                               <div className="text-right text-sm">
+                                 <div>
+                                   {s.startDate || "—"}
+                                   {s.endDate ? ` → ${s.endDate}` : ""}
+                                 </div>
+                                 {s.budget && (
+                                   <div className="text-[#c7a14a]">₹{s.budget}</div>
+                                 )}
+                               </div>
+                             </div>
+                           ))}
+                         </div>
+                       ),
+                     }));
+                   return entries;
+                 })()}
+               />
+             </div>
+           )} */}
         </div>
       </main>
     </div>
