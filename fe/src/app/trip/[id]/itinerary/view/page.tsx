@@ -14,7 +14,7 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
   
   const [searchQuery, setSearchQuery] = useState("");
   const [groupBy, setGroupBy] = useState("day");
-  const [sortBy, setSortBy] = useState("time");
+  const [sortBy, setSortBy] = useState("name");
   const [showDaySelector, setShowDaySelector] = useState(false);
   
   const { data: tripData, loading: tripLoading } = useQuery(GET_TRIP, { variables: { id } });
@@ -84,17 +84,10 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
       });
     }
     
-    // Sort items within each day by start time
+    // Sort items within each day by name instead of time
     Object.keys(grouped).forEach(day => {
       grouped[day].sort((a, b) => {
-        if (!a.startTime || !b.startTime) return 0;
-        const dateA = new Date(a.startTime);
-        const dateB = new Date(b.startTime);
-        // Handle invalid dates - put them at the end
-        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
-        if (isNaN(dateA.getTime())) return 1;
-        if (isNaN(dateB.getTime())) return -1;
-        return dateA.getTime() - dateB.getTime();
+        return (a.stop.name || '').localeCompare(b.stop.name || '');
       });
     });
     
@@ -176,15 +169,6 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
 
   const handleBackToTrips = () => {
     router.push("/trips");
-  };
-
-  const formatTime = (dateString?: string) => {
-    if (!dateString) return "";
-    return new Date(dateString).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true
-    });
   };
 
   const formatDate = (dateString: string) => {
@@ -449,9 +433,9 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
                     onChange={(e) => setSortBy(e.target.value)}
                     className="appearance-none bg-[#0b0b12] border border-[#2a2a35] rounded-md px-4 py-3 pr-10 text-[#E6E8EB] focus:outline-none focus:ring-2 focus:ring-[#27C3FF] focus:border-transparent"
                   >
-                    <option value="time">Sort by time</option>
-                    <option value="budget">Sort by budget</option>
                     <option value="name">Sort by name</option>
+                    <option value="budget">Sort by budget</option>
+                    <option value="city">Sort by city</option>
                   </select>
                   <Filter className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#9AA0A6] pointer-events-none" />
                 </div>
@@ -487,16 +471,6 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
                   <div className="p-6 space-y-4">
                     {items.map((item, index) => (
                       <div key={item.id} className="flex gap-4 p-4 bg-[#0b0b12] rounded-lg border border-[#2a2a35]">
-                        {/* Time */}
-                        <div className="flex-shrink-0 w-20 text-center">
-                          <div className="text-sm font-medium text-white">{formatTime(item.startTime)}</div>
-                          {item.endTime && (
-                            <div className="text-xs text-[#9AA0A6]">
-                              to {formatTime(item.endTime)}
-                            </div>
-                          )}
-                        </div>
-
                         {/* Activity Details */}
                         <div className="flex-1">
                           <div className="flex items-start justify-between">

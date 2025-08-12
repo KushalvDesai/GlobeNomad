@@ -184,7 +184,7 @@ export class TripService {
 
   private async generateUniqueSlug(title: string): Promise<string> {
     const baseSlug = title
-      .toLowerCase()
+      .toLowerCase()  
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
       .substring(0, 50); // Limit slug length
