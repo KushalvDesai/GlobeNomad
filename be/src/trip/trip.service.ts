@@ -474,5 +474,5 @@ export class TripService {
     }
     
     return populatedItinerary;
-  }
+   }
 }

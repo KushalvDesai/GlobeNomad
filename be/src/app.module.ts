@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
@@ -12,6 +12,7 @@ import { CitiesResolver } from './cities/cities.resolver';
 import { AdminModule } from './admin/admin.module';
 import { CitiesModule } from './cities/cities.module';
 import { ActivitiesModule } from './activities/activities.module';
+import { RedirectMiddleware } from './redirect.middleware';
 
 @Module({
   imports: [
@@ -23,7 +24,7 @@ import { ActivitiesModule } from './activities/activities.module';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       playground: true,
-      autoSchemaFile: true,
+      autoSchemaFile: 'schema.gql',
       context: ({ req }) => ({ req }),
     }),
     UserModule,
@@ -36,4 +37,10 @@ import { ActivitiesModule } from './activities/activities.module';
   ],
   providers: [AppService, CitiesResolver],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(RedirectMiddleware)
+      .forRoutes('*');
+  }
+}
