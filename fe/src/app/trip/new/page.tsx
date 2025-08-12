@@ -20,12 +20,24 @@ export default function NewTripPage() {
   const [activeCityIndex, setActiveCityIndex] = useState(-1);
   const { data } = useQuery<{ getCities: string[] }>(GET_CITIES);
   const cityOptions = data?.getCities ?? [];
-  const fuse = useMemo(() => new Fuse(cityOptions, { includeScore: true, threshold: 0.35 }), [cityOptions]);
+  const fuse = useMemo(
+    () =>
+      new Fuse(cityOptions, {
+        includeScore: true,
+        threshold: 0.45,
+        ignoreLocation: true,
+        isCaseSensitive: false,
+      }),
+    [cityOptions]
+  );
   const citySuggestions = useMemo(() => {
     const q = destination.trim();
     if (!q) return [] as string[];
-    return fuse.search(q).map((r) => r.item).slice(0, 8);
-  }, [destination, fuse]);
+    const fuzzy = fuse.search(q).map((r) => r.item);
+    if (fuzzy.length > 0) return fuzzy.slice(0, 8);
+    const lower = q.toLowerCase();
+    return cityOptions.filter((c) => c.toLowerCase().includes(lower)).slice(0, 8);
+  }, [destination, fuse, cityOptions]);
   const today = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
@@ -153,7 +165,7 @@ export default function NewTripPage() {
                       }}
                       className="w-full pl-9 pr-3 py-2 rounded-md bg-[#0b0b12] border border-[#2a2a35] focus:outline-none focus:ring-2 focus:ring-[#27C3FF]"
                     />
-                    {showCitySuggestions && destination.trim().length > 0 && (
+                     {showCitySuggestions && destination.trim().length > 0 && (
                       <div className="absolute left-0 right-0 mt-2 rounded-md border border-[#2a2a35] bg-[#0f0f17] shadow-xl z-10 max-h-72 overflow-auto">
                         {citySuggestions.length > 0 ? (
                           citySuggestions.map((city, idx) => (
