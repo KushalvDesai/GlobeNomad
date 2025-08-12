@@ -1,0 +1,474 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type User {
+  id: String!
+  name: String!
+  email: String!
+  firstName: String!
+  lastName: String!
+  password: String
+  passwordResetToken: String
+  passwordResetExpires: DateTime
+  updatedAt: DateTime!
+  phoneNumber: String
+  city: String!
+  country: String!
+  role: UserRole!
+  isActive: Boolean!
+  lastLoginAt: DateTime
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+type UserResponse {
+  id: String!
+  email: String!
+  name: String!
+  firstName: String
+  lastName: String
+}
+
+type AuthResponse {
+  token: String!
+  user: UserResponse!
+}
+
+type Trip {
+  id: ID!
+  title: String!
+  description: String
+  owner: User!
+  startDate: DateTime
+  endDate: DateTime
+  isPublic: Boolean!
+  slug: String
+  estimatedBudget: Float
+  actualBudget: Float
+  currency: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Stop {
+  id: ID
+  name: String!
+  description: String
+  latitude: Float
+  longitude: Float
+  address: String
+  city: String
+  country: String
+  estimatedDuration: Float
+  estimatedCost: Float
+  type: String
+  notes: String
+}
+
+type ItineraryItem {
+  id: ID!
+  day: Int!
+  order: Int!
+  stop: Stop!
+  startTime: DateTime
+  endTime: DateTime
+  notes: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type Itinerary {
+  id: ID!
+  trip: Trip!
+  items: [ItineraryItem!]!
+  notes: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+
+type TripsResponse {
+  trips: [Trip!]!
+  total: Float!
+  hasMore: Boolean!
+}
+
+type TripCostEstimate {
+  distanceKm: Float!
+  travelCost: Float!
+  hotelCost: Float!
+  mealCost: Float!
+  totalCost: Float!
+  originCity: String!
+  destinationCity: String!
+  days: Int!
+  travelers: Int!
+  selectedTravelMode: TravelMode!
+  tripType: String!
+}
+
+"""Available travel modes for the trip"""
+enum TravelMode {
+  TRAIN
+  BUS
+  FLIGHT
+  AUTO
+}
+
+type AdminDashboardStats {
+  totalUsers: Int!
+  totalTrips: Int!
+  activeUsers: Int!
+  publicTrips: Int!
+}
+
+type AdminUsersResponse {
+  users: [User!]!
+  total: Int!
+  hasMore: Boolean!
+  currentPage: Int!
+  totalPages: Int!
+}
+
+type AdminTripsResponse {
+  trips: [Trip!]!
+  total: Int!
+  hasMore: Boolean!
+  currentPage: Int!
+  totalPages: Int!
+}
+
+type ActivityCategory {
+  id: ID!
+  name: String!
+  description: String
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type ActivityLocation {
+  city: String!
+  country: String!
+  state: String
+  latitude: Float
+  longitude: Float
+  address: String
+}
+
+type ActivityPricing {
+  basePrice: Float!
+  currency: String!
+  groupDiscount: Float
+  seasonalMultiplier: Float
+  priceIncludes: String
+}
+
+type ActivityRequirements {
+  minAge: Int
+  maxAge: Int
+  fitnessLevel: String
+  skillLevel: String
+  equipment: [String!]
+  restrictions: [String!]
+}
+
+type Activity {
+  id: ID!
+  name: String!
+  description: String!
+  category: ActivityCategory!
+  location: ActivityLocation!
+  pricing: ActivityPricing!
+  requirements: ActivityRequirements
+  duration: Int
+  maxParticipants: Int
+  rating: Float
+  reviewCount: Int
+  images: [String!]
+  tags: [String!]
+  bestSeasons: [String!]
+  operatingHours: [String!]
+  contactInfo: String
+  bookingUrl: String
+  isActive: Boolean!
+  createdAt: DateTime
+  updatedAt: DateTime
+}
+
+type CityActivityStats {
+  city: String!
+  country: String!
+  totalActivities: Int!
+  categories: [String!]!
+  averagePrice: Float
+  averageRating: Float
+  currency: String!
+}
+
+type Query {
+  getCities: [String!]!
+  users: [User!]!
+  user(id: String!): User
+  me: User!
+  myTrips(limit: Float! = 10, offset: Float! = 0): TripsResponse!
+  trip(id: ID!): Trip!
+  publicTrip(slug: String!): Trip!
+  findAllPublicTrips(limit: Int! = 10, offset: Int! = 0): TripsResponse!
+  getItinerary(tripId: ID!): Itinerary!
+  getPublicItinerary(tripId: ID!): Itinerary
+  getActivityCategories: [ActivityCategory!]!
+  getActivityCategory(id: ID!): ActivityCategory!
+  getActivities(filters: ActivityFiltersInput): [Activity!]!
+  getActivity(id: ID!): Activity!
+  getActivitiesByCity(city: String!, filters: ActivityFiltersInput): [Activity!]!
+  getActivitiesByCountry(country: String!, filters: ActivityFiltersInput): [Activity!]!
+  getActivitiesByCategory(categoryName: String!, filters: ActivityFiltersInput): [Activity!]!
+  searchActivities(searchTerm: String!, filters: ActivityFiltersInput): [Activity!]!
+  getPopularActivities(limit: Float! = 10): [Activity!]!
+  getActivitiesNearLocation(latitude: Float!, longitude: Float!, radiusKm: Float! = 50): [Activity!]!
+  getCityActivityStats: [CityActivityStats!]!
+  getCityActivityStatsById(city: String!): CityActivityStats!
+  adminDashboard: AdminDashboardStats!
+  adminUsers(limit: Float! = 20, offset: Float! = 0): AdminUsersResponse!
+  adminTrips(limit: Float! = 20, offset: Float! = 0): AdminTripsResponse!
+}
+
+input ActivityFiltersInput {
+  city: String
+  country: String
+  category: String
+  minPrice: Float
+  maxPrice: Float
+  maxDuration: Int
+  fitnessLevel: String
+  skillLevel: String
+  tags: [String!]
+  seasons: [String!]
+  minRating: Float
+  limit: Int
+  offset: Int
+  sortBy: String
+  sortOrder: String
+}
+
+type Mutation {
+  createUser(createUserInput: CreateUserDto!): User!
+  updateUser(updateUserInput: UpdateUserDto!): User!
+  signup(signupInput: SignupInput!): AuthResponse!
+  login(loginInput: LoginInput!): AuthResponse!
+  forgotPassword(email: String!): String!
+  resetPassword(token: String!, newPassword: String!): String!
+  estimateTripCost(tripCostInput: TripCostInput!): TripCostEstimate!
+  testAmadeusFlightPrice(originCity: String!, destinationCity: String!, travelers: Float! = 1): String!
+  createTrip(createTripInput: CreateTripInput!): Trip!
+  updateTrip(updateTripInput: UpdateTripInput!): Trip!
+  deleteTrip(tripId: ID!): Boolean!
+  toggleTripPublic(tripId: ID!, isPublic: Boolean!): String
+  estimateTripBudget(tripId: ID!): Trip!
+  createItinerary(createItineraryInput: CreateItineraryInput!): Itinerary!
+  updateItinerary(updateItineraryInput: UpdateItineraryInput!): Itinerary!
+  reorderItineraryItems(reorderInput: ReorderItineraryInput!): Itinerary!
+  addStopToTrip(addStopInput: AddStopToTripInput!): Itinerary!
+  removeStopFromTrip(tripId: ID!, itemId: ID!): Itinerary!
+  createActivityCategory(createCategoryInput: CreateActivityCategoryInput!): ActivityCategory!
+  createActivity(createActivityInput: CreateActivityInput!): Activity!
+  seedActivities: String!
+  updateUserRole(userId: ID!, role: UserRole!): User!
+  toggleUserStatus(userId: ID!, isActive: Boolean!): User!
+}
+
+input CreateUserDto {
+  name: String!
+  email: String!
+  password: String!
+  firstName: String
+  lastName: String
+  phoneNumber: String
+  city: String!
+  country: String!
+}
+
+input UpdateUserDto {
+  name: String
+  email: String
+  firstName: String
+  lastName: String
+  phoneNumber: String
+  city: String
+  country: String
+}
+
+input SignupInput {
+  name: String!
+  email: String!
+  password: String!
+  firstName: String
+  lastName: String
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input TripCostInput {
+  originCity: String!
+  destinationCity: String!
+  days: Int!
+  travelers: Int!
+  travelMode: TravelMode = AUTO
+  originCountry: String
+  destinationCountry: String
+}
+
+input CreateTripInput {
+  title: String!
+  description: String
+  startDate: String
+  endDate: String
+  currency: String
+}
+
+input UpdateTripInput {
+  id: ID!
+  title: String
+  description: String
+  startDate: String
+  endDate: String
+  currency: String
+}
+
+input CreateItineraryInput {
+  tripId: String!
+  items: [CreateItineraryItemInput!]! = []
+  notes: String
+}
+
+input CreateItineraryItemInput {
+  day: Int!
+  order: Int!
+  stop: CreateStopInput!
+  startTime: String
+  endTime: String
+  notes: String
+}
+
+input CreateStopInput {
+  name: String!
+  description: String
+  latitude: Float
+  longitude: Float
+  address: String
+  city: String
+  country: String
+  estimatedDuration: Float
+  estimatedCost: Float
+  type: String! = "destination"
+  notes: String
+}
+
+input UpdateItineraryInput {
+  id: ID!
+  items: [UpdateItineraryItemInput!]
+  notes: String
+}
+
+input UpdateItineraryItemInput {
+  id: ID
+  day: Int
+  order: Int
+  stop: UpdateStopInput
+  startTime: String
+  endTime: String
+  notes: String
+}
+
+input UpdateStopInput {
+  id: ID
+  name: String
+  description: String
+  latitude: Float
+  longitude: Float
+  address: String
+  city: String
+  country: String
+  estimatedDuration: Float
+  estimatedCost: Float
+  type: String
+  notes: String
+}
+
+input ReorderItineraryInput {
+  itineraryId: ID!
+  items: [ReorderItemInput!]!
+}
+
+input ReorderItemInput {
+  itemId: ID!
+  day: Int!
+  order: Int!
+}
+
+input AddStopToTripInput {
+  tripId: String!
+  day: Int!
+  order: Int!
+  stop: CreateStopInput!
+}
+
+input CreateActivityCategoryInput {
+  name: String!
+  description: String
+}
+
+input CreateActivityInput {
+  name: String!
+  description: String!
+  categoryId: String!
+  location: ActivityLocationInput!
+  pricing: ActivityPricingInput!
+  requirements: ActivityRequirementsInput
+  duration: Int
+  maxParticipants: Int
+  images: [String!]
+  tags: [String!]
+  bestSeasons: [String!]
+  operatingHours: [String!]
+  contactInfo: String
+  bookingUrl: String
+}
+
+input ActivityLocationInput {
+  city: String!
+  country: String!
+  state: String
+  latitude: Float
+  longitude: Float
+  address: String
+}
+
+input ActivityPricingInput {
+  basePrice: Float!
+  currency: String! = "USD"
+  groupDiscount: Float
+  seasonalMultiplier: Float
+  priceIncludes: String
+}
+
+input ActivityRequirementsInput {
+  minAge: Int
+  maxAge: Int
+  fitnessLevel: String
+  skillLevel: String
+  equipment: [String!]
+  restrictions: [String!]
+}
