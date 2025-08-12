@@ -1,4 +1,3 @@
-@ -0,0 +1,344 @@
 # 🌍 GlobeNomad
 
 <div align="center">
