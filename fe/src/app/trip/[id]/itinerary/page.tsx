@@ -22,6 +22,29 @@ type StopDraft = {
 };
 
 export default function BuildItineraryPage({ params }: { params: Promise<{ id: string }> }) {
+  // Add Stop handler
+  const addStop = () => {
+    const defaultStartDate = tripStartDate || "";
+    const newStop: StopDraft = {
+      id: crypto.randomUUID(),
+      city: "",
+      name: "",
+      notes: "",
+      startDate: defaultStartDate,
+      endDate: "",
+      activity: "",
+      budget: "",
+      type: "destination"
+    };
+    setStops(prev => [...prev, newStop]);
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem("gn_token");
+    document.cookie = "gn_token=; path=/; max-age=0";
+    router.push("/login");
+  };
   const router = useRouter();
   const searchParams = useSearchParams();
   const { id } = use(params);
@@ -188,6 +211,29 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
   }, [stops, tripDays]);
 
   const handleSaveItinerary = async () => {
+  // Add Stop handler
+  const addStop = () => {
+    const defaultStartDate = tripStartDate || "";
+    const newStop: StopDraft = {
+      id: crypto.randomUUID(),
+      city: "",
+      name: "",
+      notes: "",
+      startDate: defaultStartDate,
+      endDate: "",
+      activity: "",
+      budget: "",
+      type: "destination"
+    };
+    setStops(prev => [...prev, newStop]);
+  };
+
+  // Logout handler
+  const handleLogout = () => {
+    localStorage.removeItem("gn_token");
+    document.cookie = "gn_token=; path=/; max-age=0";
+    router.push("/login");
+  };
     // Validate all stops before saving
     const errors = getValidationErrors();
     if (Object.keys(errors).length > 0) {
@@ -228,6 +274,8 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
         if (result.data?.updateItinerary) {
           setCurrentItinerary(result.data.updateItinerary);
           alert("Itinerary updated successfully!");
+          router.push(`/trip/${id}/view`);
+          return;
         }
       } else {
         // Create new itinerary
@@ -259,74 +307,16 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
         if (result.data?.createItinerary) {
           setCurrentItinerary(result.data.createItinerary);
           alert("Itinerary created successfully!");
-          
-          // Refetch to get the latest data
-          refetchItinerary();
+          router.push(`/trip/${id}/view`);
+          return;
         }
       }
-      
+
       console.log('Saved itinerary data:', summaryData);
-      
+
     } catch (error) {
       console.error("Error saving itinerary:", error);
       alert("Error saving itinerary. Please try again.");
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("gn_token");
-    document.cookie = "gn_token=; path=/; max-age=0";
-    router.push("/login");
-  };
-
-  const addStop = async () => {
-    // Use start date from query params if available, otherwise use trip start date
-    const defaultStartDate = startDateFromQuery || tripStartDate || "";
-    
-    const newStop: StopDraft = {
-      id: crypto.randomUUID(),
-      city: "",
-      name: "",
-      notes: "",
-      startDate: defaultStartDate,
-      endDate: "",
-      activity: "",
-      budget: "",
-      type: "destination"
-    };
-
-    // Add to local state immediately for UI responsiveness
-    setStops(prev => [...prev, newStop]);
-    
-    // If we have a backend itinerary, add the stop there too
-    if (currentItinerary) {
-      try {
-        const addStopInput: AddStopToTripInput = {
-          tripId: id,
-          day: 1, // Default day
-          order: stops.length, // Add at the end
-          stop: {
-            name: newStop.name || "New Stop",
-            city: newStop.city,
-            description: newStop.activity,
-            estimatedCost: parseFloat(newStop.budget) || 0,
-            type: newStop.type,
-            notes: newStop.notes,
-          }
-        };
-
-        const result = await addStopToTrip({
-          variables: { addStopInput }
-        });
-
-        if (result.data?.addStopToTrip) {
-          setCurrentItinerary(result.data.addStopToTrip);
-          refetchItinerary();
-        }
-      } catch (error) {
-        console.error("Error adding stop to backend:", error);
-        // Keep the local change even if backend fails
-      }
     }
   };
 
@@ -561,7 +551,7 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
               <div
                 key={stop.id}
                 draggable
-                onDragStart={(e) => handleDragStart(e, stop.id)}
+      // Timeline preview permanently removed as requested
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, stop.id)}
                 className={`rounded-2xl border border-[#2a2a35] bg-[#0f0f17] p-6 transition-all ${
@@ -746,7 +736,7 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
             </button>
           </div>
 
-          {/* Summary */}
+           {/* Summary */}
           {stops.length > 0 && (
             <div className="bg-[#0f0f17] border border-[#2a2a35] rounded-lg p-4">
               <h3 className="text-lg font-semibold mb-2">Itinerary Summary</h3>
@@ -784,6 +774,60 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
               </div>
             </div>
           )}
+
+           {/* Timeline preview using Aceternity UI Timeline */}
+           {/* {stops.length > 0 && (
+             <div className="bg-[#0f0f17] border border-[#2a2a35] rounded-lg p-4">
+               <h3 className="text-lg font-semibold mb-4">Timeline Preview</h3>
+               <Timeline
+                 data={(() => {
+                   const byDay: Record<string, typeof stops> = {};
+                   for (const s of stops) {
+                     const key = s.startDate || "Unscheduled";
+                     (byDay[key] ||= []).push(s);
+                   }
+                   const entries: TimelineEntry[] = Object.entries(byDay)
+                     .sort((a, b) => a[0].localeCompare(b[0]))
+                     .map(([day, arr]) => ({
+                       title:
+                         tripDays.length > 0 && day !== "Unscheduled"
+                           ? `Day ${tripDays.indexOf(day) + 1}`
+                           : day,
+                       content: (
+                         <div className="space-y-3">
+                           {arr.map((s, i) => (
+                             <div
+                               key={s.id}
+                               className="flex items-start justify-between gap-3 rounded-md border border-[#2a2a35] bg-[#0b0b12] p-3"
+                             >
+                               <div>
+                                 <div className="font-medium">
+                                   {s.name || s.activity || s.city || `Stop ${i + 1}`}
+                                 </div>
+                                 <div className="text-xs text-[#9AA0A6]">
+                                   {s.city || "Unknown city"}
+                                 </div>
+                                 {s.notes && <div className="text-sm mt-1">{s.notes}</div>}
+                               </div>
+                               <div className="text-right text-sm">
+                                 <div>
+                                   {s.startDate || "—"}
+                                   {s.endDate ? ` → ${s.endDate}` : ""}
+                                 </div>
+                                 {s.budget && (
+                                   <div className="text-[#c7a14a]">₹{s.budget}</div>
+                                 )}
+                               </div>
+                             </div>
+                           ))}
+                         </div>
+                       ),
+                     }));
+                   return entries;
+                 })()}
+               />
+             </div>
+           )} */}
         </div>
       </main>
     </div>

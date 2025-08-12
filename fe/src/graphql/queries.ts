@@ -103,33 +103,17 @@ export const GET_ADMIN_TRIPS = gql`
   }
 `;
 
-// Get itinerary for a trip
-export const GET_ITINERARY = gql`
+// Get itinerary for a trip (detailed)
+export const GET_ITINERARY_DETAILED = gql`
   query GetItinerary($tripId: ID!) {
     getItinerary(tripId: $tripId) {
       id
-      trip {
-        id
-        title
-      }
+      trip { id title }
       items {
         id
         day
         order
-        stop {
-          id
-          name
-          description
-          latitude
-          longitude
-          address
-          city
-          country
-          estimatedDuration
-          estimatedCost
-          type
-          notes
-        }
+        stop { id name description latitude longitude address city country estimatedDuration estimatedCost type notes }
         startTime
         endTime
         notes
@@ -147,6 +131,34 @@ export const GET_ITINERARY = gql`
 export const GET_CITIES = gql`
   query GetCities {
     getCities
+  }
+`;
+
+// Itinerary by trip (compact)
+export const GET_ITINERARY = gql`
+  query GetItinerary($tripId: ID!) {
+    getItinerary(tripId: $tripId) {
+      id
+      items {
+        id
+        day
+        order
+        stop {
+          id
+          name
+          description
+          city
+          estimatedCost
+          estimatedDuration
+          type
+          notes
+        }
+        startTime
+        endTime
+        notes
+      }
+      notes
+    }
   }
 `;
 
