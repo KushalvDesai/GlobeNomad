@@ -4,9 +4,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, use, useEffect } from "react";
 import { Settings, User, LogOut, Trash2, GripVertical, Plus, Calendar, MapPin, Save } from "lucide-react";
 import { useMutation, useQuery } from "@apollo/client";
-import { GET_TRIP, GET_CITIES, GET_ITINERARY } from "@/graphql/queries";
+import { GET_TRIP, GET_CITIES, GET_ITINERARY, GET_ACTIVITY_CATEGORIES } from "@/graphql/queries";
 import { CREATE_ITINERARY, UPDATE_ITINERARY, ADD_STOP_TO_TRIP, REMOVE_STOP_FROM_TRIP } from "@/graphql/mutations";
-import type { CreateItineraryInput, UpdateItineraryInput, AddStopToTripInput, Itinerary, ItineraryItem } from "@/graphql/types";
+import type { CreateItineraryInput, UpdateItineraryInput, AddStopToTripInput, Itinerary, ItineraryItem, ActivityCategory } from "@/graphql/types";
 import Fuse from "fuse.js";
 
 type StopDraft = {
@@ -18,7 +18,7 @@ type StopDraft = {
   endDate: string;
   activity: string;
   budget: string;
-  type: "attraction" | "destination" | "restaurant" | "hotel" | "activity";
+  type: "attraction" | "destination" | "restaurant" | "hotel" | "activity" | string;
 };
 
 export default function BuildItineraryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -69,6 +69,9 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
     errorPolicy: 'ignore' // Ignore if itinerary doesn't exist yet
   });
   
+  // Fetch activity categories
+  const { data: categoriesData } = useQuery<{ getActivityCategories: ActivityCategory[] }>(GET_ACTIVITY_CATEGORIES);
+  
   // Mutations
   const [createItinerary] = useMutation(CREATE_ITINERARY);
   const [updateItinerary] = useMutation(UPDATE_ITINERARY);
@@ -83,6 +86,7 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
   } | undefined;
   
   const cityOptions = citiesData?.getCities ?? [];
+  const activityCategories = categoriesData?.getActivityCategories ?? [];
   const fuse = useMemo(() => new Fuse(cityOptions, { includeScore: true, threshold: 0.35 }), [cityOptions]);
   const [activeCityIndex, setActiveCityIndex] = useState<number>(-1);
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
@@ -503,7 +507,7 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
               <h1 className="text-2xl font-bold">{trip?.title ?? "Build Itinerary"}</h1>
               {trip?.startDate && trip?.endDate && (
                 <p className="text-sm text-[#9AA0A6] mt-1">
-                  <Calendar className="w-4 h-4 inline mr-1" />
+                  <Calendar className="w-4 h-4 inline mr-1" color="white" />
                   {new Date(trip.startDate).toDateString()} - {new Date(trip.endDate).toDateString()}
                 </p>
               )}
@@ -641,7 +645,10 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
                           onChange={(e) => updateStop(stop.id, { startDate: e.target.value })}
                           min={tripStartDate}
                           max={tripEndDate}
-                          className="w-full rounded-md bg-[#0b0b12] border border-[#2a2a35] p-3 focus:border-[#27C3FF] transition-colors"
+                          className="w-full rounded-md bg-[#0b0b12] border border-[#2a2a35] p-3 focus:border-[#27C3FF] transition-colors text-white [color-scheme:dark]"
+                          style={{
+                            colorScheme: 'dark'
+                          }}
                         />
                       </div>
                       <div>
@@ -652,7 +659,10 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
                           onChange={(e) => updateStop(stop.id, { endDate: e.target.value })}
                           min={stop.startDate || tripStartDate}
                           max={tripEndDate}
-                          className="w-full rounded-md bg-[#0b0b12] border border-[#2a2a35] p-3 focus:border-[#27C3FF] transition-colors"
+                          className="w-full rounded-md bg-[#0b0b12] border border-[#2a2a35] p-3 focus:border-[#27C3FF] transition-colors text-white [color-scheme:dark]"
+                          style={{
+                            colorScheme: 'dark'
+                          }}
                         />
                       </div>
                     </div>
@@ -687,11 +697,14 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
                         onChange={(e) => updateStop(stop.id, { type: e.target.value as StopDraft['type'] })}
                         className="w-full rounded-md bg-[#0b0b12] border border-[#2a2a35] p-3 focus:border-[#27C3FF] transition-colors"
                       >
-                        <option value="destination">Destination</option>
-                        <option value="attraction">Tourist Attraction</option>
-                        <option value="restaurant">Restaurant</option>
-                        <option value="hotel">Hotel</option>
-                        <option value="activity">Activity</option>
+                        <option value="activities">Activities</option>
+                        
+                        {/* Activity categories from backend */}
+                        {activityCategories.map((category) => (
+                          <option key={category.id} value={category.name.toLowerCase().replace(/\s+/g, '_')}>
+                            {category.name}
+                          </option>
+                        ))}
                       </select>
                     </div>
 

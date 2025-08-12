@@ -358,3 +358,170 @@ export interface RemoveStopFromTripVariables {
 export interface EstimateTripCostVariables {
   tripCostInput: TripCostInput;
 }
+
+// Activity types
+export interface ActivityCategory {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ActivityLocation {
+  city: string;
+  country: string;
+  state?: string;
+  latitude?: number;
+  longitude?: number;
+  address?: string;
+}
+
+export interface ActivityPricing {
+  basePrice: number;
+  currency: string;
+  groupDiscount?: number;
+  seasonalMultiplier?: number;
+  priceIncludes?: string;
+}
+
+export interface ActivityRequirements {
+  minAge?: number;
+  maxAge?: number;
+  fitnessLevel?: string;
+  skillLevel?: string;
+  equipment?: string[];
+  restrictions?: string[];
+}
+
+export interface Activity {
+  id: string;
+  name: string;
+  description: string;
+  location: ActivityLocation;
+  pricing: ActivityPricing;
+  duration?: number;
+  maxParticipants?: number;
+  category: ActivityCategory;
+  requirements?: ActivityRequirements;
+  images?: string[];
+  tags?: string[];
+  bestSeasons?: string[];
+  operatingHours?: string[];
+  contactInfo?: string;
+  bookingUrl?: string;
+  rating?: number;
+  reviewCount?: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CityActivityStats {
+  city: string;
+  country: string;
+  totalActivities: number;
+  categories: string[];
+  averagePrice?: number;
+  averageRating?: number;
+  currency: string;
+}
+
+export interface ActivitiesResponse {
+  activities: Activity[];
+  total: number;
+  hasMore: boolean;
+}
+
+// Activity input types
+export interface CreateActivityCategoryInput {
+  name: string;
+  description?: string;
+}
+
+export interface CreateActivityInput {
+  name: string;
+  description: string;
+  city: string;
+  country: string;
+  price: number;
+  currency: string;
+  duration: number;
+  difficulty: string;
+  categoryId: string;
+  requirements?: string[];
+  included?: string[];
+  excluded?: string[];
+  highlights?: string[];
+  images?: string[];
+}
+
+export interface GetActivitiesByCityInput {
+  city: string;
+  limit?: number;
+  offset?: number;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+  categoryId?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  difficulty?: string;
+}
+
+export interface SearchActivitiesInput {
+  keyword: string;
+  city?: string;
+  categoryId?: string;
+  limit?: number;
+  offset?: number;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+  minPrice?: number;
+  maxPrice?: number;
+  difficulty?: string;
+}
+
+// Activity query variables
+export interface GetActivitiesByCityVariables {
+  input: GetActivitiesByCityInput;
+}
+
+export interface SearchActivitiesVariables {
+  input: SearchActivitiesInput;
+}
+
+export interface GetActivitiesVariables {
+  limit?: number;
+  offset?: number;
+}
+
+export interface GetActivityVariables {
+  id: string;
+}
+
+export interface CreateActivityCategoryVariables {
+  input: CreateActivityCategoryInput;
+}
+
+export interface CreateActivityVariables {
+  input: CreateActivityInput;
+}
+
+// Activity Filter Input
+export interface ActivityFiltersInput {
+  city?: string;
+  country?: string;
+  category?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  maxDuration?: number;
+  fitnessLevel?: string;
+  skillLevel?: string;
+  tags?: string[];
+  seasons?: string[];
+  minRating?: number;
+  limit?: number;
+  offset?: number;
+  sortBy?: string; // price, rating, duration, name
+  sortOrder?: string; // asc, desc
+}

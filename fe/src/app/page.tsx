@@ -116,25 +116,30 @@ export default function Home() {
           <button onClick={() => router.push("/")} className="text-2xl font-semibold text-white hover:opacity-90">
             GlobeNomad
           </button>
-          <div className="flex items-center gap-3">
-            <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Settings">
-              <Settings className="w-5 h-5" />
-            </button>
-            <button
-              className="p-2 rounded-md hover:bg-[#14141c]"
-              aria-label="Account"
-              onClick={() => router.push("/profile")}
-            >
-              <User className="w-5 h-5" />
-            </button>
+          {/* Add navigation menu */}
+          <nav className="flex items-center gap-6">
             <button 
-              onClick={handleLogout}
-              className="p-2 rounded-md hover:bg-[#14141c] text-red-400 hover:text-red-300" 
-              aria-label="Logout"
+              onClick={() => router.push("/activities")}
+              className="text-[#E6E8EB] hover:text-white transition-colors"
             >
-              <LogOut className="w-5 h-5" />
+              Activities
             </button>
-          </div>
+            <div className="flex items-center gap-3">
+              <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Settings">
+                <Settings className="w-5 h-5" />
+              </button>
+              <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Account">
+                <User className="w-5 h-5" />
+              </button>
+              <button 
+                onClick={handleLogout}
+                className="p-2 rounded-md hover:bg-[#14141c] text-red-400 hover:text-red-300" 
+                aria-label="Logout"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </div>
+          </nav>
         </div>
       </header>
 
