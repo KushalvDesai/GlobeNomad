@@ -49,6 +49,30 @@ body {
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: #0b0b12; }
 ::-webkit-scrollbar-thumb { background: #2a2a35; border-radius: 6px; }
+
+/* Text utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Community page specific styles */
+.community-card {
+  @apply bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700;
+}
+
+.community-card:hover {
+  transform: translateY(-2px);
+}
 ::-webkit-scrollbar-thumb:hover { background: #343446; }
 
 /* Utility */

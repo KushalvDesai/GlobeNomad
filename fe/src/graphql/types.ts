@@ -43,6 +43,29 @@ export interface TripsResponse {
   hasMore: boolean;
 }
 
+// Public trip interface (subset of Trip)
+export interface PublicTrip {
+  id: string;
+  title: string;
+  description?: string;
+  startDate?: string;
+  endDate?: string;
+  isPublic: boolean;
+  slug?: string;
+  estimatedBudget?: number;
+  actualBudget?: number;
+  currency?: string;
+  owner: Pick<User, 'id' | 'email'>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PublicTripsResponse {
+  trips: PublicTrip[];
+  total: number;
+  hasMore: boolean;
+}
+
 // Admin types
 export interface AdminDashboardStats {
   totalUsers: number;
@@ -273,6 +296,11 @@ export interface GetTripVariables {
 
 export interface GetPublicTripVariables {
   slug: string;
+}
+
+export interface GetPublicTripsVariables {
+  limit?: number;
+  offset?: number;
 }
 
 export interface GetItineraryVariables {

@@ -9,6 +9,8 @@ export const GET_USERS = gql`
       email
       firstName
       lastName
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -35,7 +37,15 @@ export const GET_USER_PROFILE = gql`
       id
       name
       email
+      firstName
+      lastName
+      phoneNumber
+      city
+      country
       role
+      isActive
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -63,6 +73,8 @@ export const GET_ADMIN_USERS = gql`
         lastName
         role
         isActive
+        createdAt
+        updatedAt
       }
       total
       hasMore
@@ -210,6 +222,34 @@ export const GET_PUBLIC_TRIP = gql`
       }
       createdAt
       updatedAt
+    }
+  }
+`;
+
+// Get all public trips (paginated)
+export const GET_PUBLIC_TRIPS = gql`
+  query GetPublicTrips($limit: Int, $offset: Int) {
+    findAllPublicTrips(limit: $limit, offset: $offset) {
+      trips {
+        id
+        title
+        description
+        startDate
+        endDate
+        isPublic
+        slug
+        estimatedBudget
+        actualBudget
+        currency
+        owner {
+          id
+          email
+        }
+        createdAt
+        updatedAt
+      }
+      total
+      hasMore
     }
   }
 `;

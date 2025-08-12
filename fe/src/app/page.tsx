@@ -12,10 +12,8 @@ import {
   ArrowUpDown,
   Users,
   Plus,
-  User,
-  Settings,
-  LogOut,
 } from "lucide-react";
+import Header from "@/components/ui/Header";
 
 export default function Home() {
   const router = useRouter();
@@ -64,12 +62,6 @@ export default function Home() {
     [router]
   );
 
-  const handleLogout = () => {
-    localStorage.removeItem("gn_token");
-    document.cookie = "gn_token=; path=/; max-age=0";
-    router.push("/login");
-  };
-
   // Show loading or redirect if not authenticated
   if (isAuthenticated === null) {
     return (
@@ -111,38 +103,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#0b0b12] text-[#E6E8EB]">
-      {/* Header */}
-      <header className="px-6 py-4 border-b border-[#2a2a35] sticky top-0 z-30 bg-[#0b0b12]/90 backdrop-blur">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <button onClick={() => router.push("/")} className="text-2xl font-semibold text-white hover:opacity-90">
-            GlobeNomad
-          </button>
-          {/* Add navigation menu */}
-          <nav className="flex items-center gap-6">
-            <button 
-              onClick={() => router.push("/activities")}
-              className="text-[#E6E8EB] hover:text-white transition-colors"
-            >
-              Activities
-            </button>
-            <div className="flex items-center gap-3">
-              <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Settings">
-                <Settings className="w-5 h-5" />
-              </button>
-              <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Account">
-                <User className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={handleLogout}
-                className="p-2 rounded-md hover:bg-[#14141c] text-red-400 hover:text-red-300" 
-                aria-label="Logout"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </div>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="px-6 py-8">

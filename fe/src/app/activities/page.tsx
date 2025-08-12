@@ -23,6 +23,7 @@ import ActivityFilters from '@/components/activities/ActivityFilters';
 import ActivitySearch from '@/components/activities/ActivitySearch';
 import CitySelector from '@/components/activities/CitySelector';
 import { Loader2, MapPin, Filter, Search, Settings, User, LogOut } from 'lucide-react';
+import Header from '@/components/ui/Header';
 
 export default function ActivitiesPage() {
   const router = useRouter();
@@ -180,11 +181,11 @@ export default function ActivitiesPage() {
         // Navigate to the itinerary page with the activity and city info
         const params = new URLSearchParams();
         params.set('firstCity', activity.location.city);
-        params.set('startDate', createTripInput.startDate);
+        params.set('startDate', createTripInput.startDate || '');
         params.set('activityId', activity.id);
         params.set('activityName', activity.name);
         params.set('activityDescription', activity.description || '');
-        params.set('activityPrice', activity.pricing?.amount?.toString() || '0');
+        params.set('activityPrice', activity.pricing?.basePrice?.toString() || '0');
         params.set('activityCurrency', activity.pricing?.currency || 'INR');
         params.set('activityDuration', activity.duration?.toString() || '120');
         params.set('activityCategory', activity.category?.name || 'Activity');
@@ -205,37 +206,7 @@ export default function ActivitiesPage() {
 
   return (
     <div className="min-h-screen bg-[#0b0b12] text-[#E6E8EB]">
-      {/* Dashboard Header - Same as main page */}
-      <header className="px-6 py-4 border-b border-[#2a2a35] sticky top-0 z-30 bg-[#0b0b12]/90 backdrop-blur">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <button onClick={() => router.push("/")} className="text-2xl font-semibold text-white hover:opacity-90">
-            GlobeNomad
-          </button>
-          <nav className="flex items-center gap-6">
-            <button 
-              onClick={() => router.push("/activities")}
-              className="text-[#27C3FF] hover:text-white transition-colors font-medium"
-            >
-              Activities
-            </button>
-            <div className="flex items-center gap-3">
-              <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Settings">
-                <Settings className="w-5 h-5" />
-              </button>
-              <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Account">
-                <User className="w-5 h-5" />
-              </button>
-              <button 
-                onClick={handleLogout}
-                className="p-2 rounded-md hover:bg-[#14141c] text-red-400 hover:text-red-300" 
-                aria-label="Logout"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </div>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       {/* Page Header */}
       <div className="border-b border-[#2a2a35] bg-[#0f0f17]">

@@ -96,12 +96,12 @@ export default function AdminPanel() {
   });
 
   const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useQuery(GET_ADMIN_USERS, {
-    variables: { limit: itemsPerPage, offset: (currentPage - 1) * itemsPerPage },
+    variables: { limit: itemsPerPage * 1.0, offset: (currentPage - 1) * itemsPerPage * 1.0 },
     skip: !isAdminLike || activeTab !== 'users',
   });
 
   const { data: tripsData, loading: tripsLoading, refetch: refetchTrips } = useQuery(GET_ADMIN_TRIPS, {
-    variables: { limit: itemsPerPage, offset: (currentPage - 1) * itemsPerPage },
+    variables: { limit: itemsPerPage * 1.0, offset: (currentPage - 1) * itemsPerPage * 1.0 },
     skip: !isAdminLike || activeTab !== 'trips',
   });
 
