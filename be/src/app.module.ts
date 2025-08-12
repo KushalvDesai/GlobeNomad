@@ -24,7 +24,7 @@ import { RedirectMiddleware } from './redirect.middleware';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       playground: true,
-      autoSchemaFile: true,
+      autoSchemaFile: 'schema.gql',
       context: ({ req }) => ({ req }),
     }),
     UserModule,
