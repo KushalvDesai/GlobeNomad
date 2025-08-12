@@ -94,6 +94,12 @@ export function createApolloClient(): ApolloClient<any> {
 
     if (graphQLErrors) {
       graphQLErrors.forEach(({ message, locations, path }) => {
+        // Ignore expected "Itinerary not found" errors for getItinerary queries
+        if (operation.operationName === 'GetItinerary' && message.includes('Itinerary not found')) {
+          console.log(`ℹ️ [Expected]: ${message} - This is normal for new trips without itineraries`);
+          return;
+        }
+        
         console.error(
           `❌ [GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
         );

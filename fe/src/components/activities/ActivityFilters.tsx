@@ -48,17 +48,16 @@ export default function ActivityFilters({
   const hasActiveFilters = selectedCategory || minPrice || maxPrice || difficulty || sortBy !== 'name' || sortOrder !== 'ASC';
 
   return (
-    <div className="card card-hover p-6">
+    <div className="bg-[#0f0f17] border border-[#2a2a35] rounded-lg p-6 hover:bg-[#14141c] transition-colors">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2">
-          <Filter className="w-5 h-5" style={{ color: 'var(--accent-1)' }} />
-          <h3 className="text-lg font-semibold" style={{ color: 'var(--foreground)' }}>Filters</h3>
+          <Filter className="w-5 h-5 text-[#27C3FF]" />
+          <h3 className="text-lg font-semibold text-[#E6E8EB]">Filters</h3>
         </div>
         {hasActiveFilters && (
           <button
             onClick={onClearFilters}
-            className="flex items-center space-x-1 text-sm hover:opacity-70 transition-opacity"
-            style={{ color: 'var(--muted-foreground)' }}
+            className="flex items-center space-x-1 text-sm text-[#9AA0A6] hover:text-[#E6E8EB] transition-colors"
           >
             <X className="w-4 h-4" />
             <span>Clear all</span>
@@ -69,17 +68,13 @@ export default function ActivityFilters({
       <div className="space-y-6">
         {/* Category Filter */}
         <div>
-          <label className="block text-sm font-medium mb-3" style={{ color: 'var(--foreground)' }}>
+          <label className="block text-sm font-medium mb-3 text-[#E6E8EB]">
             Category
           </label>
           <select
             value={selectedCategory}
             onChange={(e) => onCategoryChange(e.target.value)}
-            className="input w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-opacity-50 transition-colors"
-            style={{ 
-              focusRingColor: 'var(--accent-1)',
-              borderColor: 'var(--muted)'
-            }}
+            className="w-full px-3 py-2 rounded-md bg-[#0f0f17] border border-[#2a2a35] text-[#E6E8EB] focus:outline-none focus:ring-2 focus:ring-[#27C3FF] transition-colors"
           >
             <option value="">All categories</option>
             {categories.map((category) => (
@@ -92,17 +87,13 @@ export default function ActivityFilters({
 
         {/* Difficulty Filter */}
         <div>
-          <label className="block text-sm font-medium mb-3" style={{ color: 'var(--foreground)' }}>
+          <label className="block text-sm font-medium mb-3 text-[#E6E8EB]">
             Difficulty
           </label>
           <select
             value={difficulty}
             onChange={(e) => onDifficultyChange(e.target.value)}
-            className="input w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-opacity-50 transition-colors"
-            style={{ 
-              focusRingColor: 'var(--accent-1)',
-              borderColor: 'var(--muted)'
-            }}
+            className="w-full px-3 py-2 rounded-md bg-[#0f0f17] border border-[#2a2a35] text-[#E6E8EB] focus:outline-none focus:ring-2 focus:ring-[#27C3FF] transition-colors"
           >
             <option value="">All difficulties</option>
             {difficulties.map((diff) => (
@@ -115,7 +106,7 @@ export default function ActivityFilters({
 
         {/* Price Range */}
         <div>
-          <label className="block text-sm font-medium mb-3" style={{ color: 'var(--foreground)' }}>
+          <label className="block text-sm font-medium mb-3 text-[#E6E8EB]">
             Price Range
           </label>
           <div className="grid grid-cols-2 gap-3">
@@ -125,11 +116,7 @@ export default function ActivityFilters({
                 placeholder="Min price"
                 value={minPrice || ''}
                 onChange={(e) => onMinPriceChange(e.target.value ? Number(e.target.value) : undefined)}
-                className="input w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-opacity-50 transition-colors"
-                style={{ 
-                  focusRingColor: 'var(--accent-1)',
-                  borderColor: 'var(--muted)'
-                }}
+                className="w-full px-3 py-2 rounded-md bg-[#0f0f17] border border-[#2a2a35] text-[#E6E8EB] placeholder-[#9AA0A6] focus:outline-none focus:ring-2 focus:ring-[#27C3FF] transition-colors"
               />
             </div>
             <div>
@@ -138,11 +125,7 @@ export default function ActivityFilters({
                 placeholder="Max price"
                 value={maxPrice || ''}
                 onChange={(e) => onMaxPriceChange(e.target.value ? Number(e.target.value) : undefined)}
-                className="input w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-opacity-50 transition-colors"
-                style={{ 
-                  focusRingColor: 'var(--accent-1)',
-                  borderColor: 'var(--muted)'
-                }}
+                className="w-full px-3 py-2 rounded-md bg-[#0f0f17] border border-[#2a2a35] text-[#E6E8EB] placeholder-[#9AA0A6] focus:outline-none focus:ring-2 focus:ring-[#27C3FF] transition-colors"
               />
             </div>
           </div>
@@ -150,18 +133,14 @@ export default function ActivityFilters({
 
         {/* Sort Options */}
         <div>
-          <label className="block text-sm font-medium mb-3" style={{ color: 'var(--foreground)' }}>
+          <label className="block text-sm font-medium mb-3 text-[#E6E8EB]">
             Sort by
           </label>
           <div className="space-y-3">
             <select
               value={sortBy}
               onChange={(e) => onSortByChange(e.target.value)}
-              className="input w-full px-3 py-2 rounded-md focus:ring-2 focus:ring-opacity-50 transition-colors"
-              style={{ 
-                focusRingColor: 'var(--accent-1)',
-                borderColor: 'var(--muted)'
-              }}
+              className="w-full px-3 py-2 rounded-md bg-[#0f0f17] border border-[#2a2a35] text-[#E6E8EB] focus:outline-none focus:ring-2 focus:ring-[#27C3FF] transition-colors"
             >
               {sortOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -174,8 +153,8 @@ export default function ActivityFilters({
                 onClick={() => onSortOrderChange('ASC')}
                 className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors ${
                   sortOrder === 'ASC'
-                    ? 'button-primary'
-                    : 'button hover:opacity-90'
+                    ? 'bg-[#27C3FF] text-[#0f0f17] font-medium'
+                    : 'bg-[#0f0f17] border border-[#2a2a35] text-[#E6E8EB] hover:bg-[#14141c]'
                 }`}
               >
                 Ascending
@@ -184,8 +163,8 @@ export default function ActivityFilters({
                 onClick={() => onSortOrderChange('DESC')}
                 className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors ${
                   sortOrder === 'DESC'
-                    ? 'button-primary'
-                    : 'button hover:opacity-90'
+                    ? 'bg-[#27C3FF] text-[#0f0f17] font-medium'
+                    : 'bg-[#0f0f17] border border-[#2a2a35] text-[#E6E8EB] hover:bg-[#14141c]'
                 }`}
               >
                 Descending

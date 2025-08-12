@@ -30,15 +30,16 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
   const firstCityFromQuery = searchParams.get('firstCity');
   const startDateFromQuery = searchParams.get('startDate');
   
-  // Debug query parameters
-  useEffect(() => {
-    console.log('Query parameters:', {
-      firstCity: firstCityFromQuery,
-      startDate: startDateFromQuery,
-      allParams: Object.fromEntries(searchParams.entries())
-    });
-  }, [firstCityFromQuery, startDateFromQuery, searchParams]);
+  // Get activity information from query parameters
+  const activityId = searchParams.get('activityId');
+  const activityName = searchParams.get('activityName');
+  const activityDescription = searchParams.get('activityDescription');
+  const activityPrice = searchParams.get('activityPrice');
+  const activityCurrency = searchParams.get('activityCurrency');
+  const activityDuration = searchParams.get('activityDuration');
+  const activityCategory = searchParams.get('activityCategory');
   
+  // Queries
   const { data: tripData, loading: tripLoading } = useQuery(GET_TRIP, { variables: { id } });
   const { data: citiesData } = useQuery<{ getCities: string[] }>(GET_CITIES);
   const { data: itineraryData, loading: itineraryLoading, refetch: refetchItinerary } = useQuery<{ getItinerary: Itinerary }>(GET_ITINERARY, { 
@@ -55,6 +56,7 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
   const [addStopToTrip] = useMutation(ADD_STOP_TO_TRIP);
   const [removeStopFromTrip] = useMutation(REMOVE_STOP_FROM_TRIP);
   
+  // Extract trip data
   const trip = tripData?.trip as { 
     id: string; 
     title: string; 
@@ -62,17 +64,34 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
     endDate?: string;
   } | undefined;
   
+  // City search setup
   const cityOptions = citiesData?.getCities ?? [];
   const activityCategories = categoriesData?.getActivityCategories ?? [];
   const fuse = useMemo(() => new Fuse(cityOptions, { includeScore: true, threshold: 0.35 }), [cityOptions]);
+  
+  // State variables
   const [activeCityIndex, setActiveCityIndex] = useState<number>(-1);
   const [activeStopId, setActiveStopId] = useState<string | null>(null);
   const [draggedStopId, setDraggedStopId] = useState<string | null>(null);
-
-  // Initialize stops from backend itinerary or create empty
   const [stops, setStops] = useState<StopDraft[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [currentItinerary, setCurrentItinerary] = useState<Itinerary | null>(null);
+  
+  // Debug query parameters
+  useEffect(() => {
+    console.log('Query parameters:', {
+      firstCity: firstCityFromQuery,
+      startDate: startDateFromQuery,
+      activityId,
+      activityName,
+      activityDescription,
+      activityPrice,
+      activityCurrency,
+      activityDuration,
+      activityCategory,
+      allParams: Object.fromEntries(searchParams.entries())
+    });
+  }, [firstCityFromQuery, startDateFromQuery, activityId, activityName, activityDescription, activityPrice, activityCurrency, activityDuration, activityCategory, searchParams]);
 
   // Initialize stops when data loads
   useEffect(() => {
@@ -81,6 +100,7 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
       trip: !!trip,
       firstCityFromQuery,
       startDateFromQuery,
+      activityName,
       itineraryData: !!itineraryData?.getItinerary
     });
 
@@ -113,6 +133,27 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
       const tripStartDateString = startDateFromQuery || (trip.startDate ? new Date(trip.startDate).toISOString().slice(0, 10) : "");
       const firstCity = firstCityFromQuery || "";
       
+      // If we have activity information from URL, create a stop with that activity
+      if (activityName && activityId) {
+        const activityStop: StopDraft = {
+          id: crypto.randomUUID(),
+          city: firstCity,
+          name: activityName,
+          notes: activityDescription || `${activityCategory || 'Activity'} in ${firstCity}`,
+          startDate: tripStartDateString,
+          endDate: tripStartDateString, // Same day activity
+          activity: activityDescription || activityName,
+          budget: activityPrice || "",
+          type: "activity"
+        };
+        
+        console.log('Creating activity stop:', activityStop);
+        setStops([activityStop]);
+        setIsInitialized(true);
+        return;
+      }
+      
+      // Create basic initial stop if no activity data
       const initialStop: StopDraft = {
         id: crypto.randomUUID(),
         city: firstCity,
@@ -129,7 +170,7 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
       setStops([initialStop]);
       setIsInitialized(true);
     }
-  }, [trip, isInitialized, firstCityFromQuery, startDateFromQuery, id, itineraryData]);
+  }, [trip, isInitialized, firstCityFromQuery, startDateFromQuery, activityId, activityName, activityDescription, activityPrice, id, itineraryData]);
 
   // Get date range for validation
   const tripStartDate = trip?.startDate ? new Date(trip.startDate).toISOString().slice(0, 10) : undefined;

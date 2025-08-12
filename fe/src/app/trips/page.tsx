@@ -439,13 +439,6 @@ export default function TripsPage() {
               </p>
             </div>
           </div>
-          <button
-            onClick={handlePlanNewTrip}
-            className="px-6 py-3 rounded-md bg-[var(--accent-1)] text-[var(--foreground)] hover:bg-[var(--accent-1)]/90 flex items-center gap-2 font-medium transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Plan New Trip
-          </button>
         </div>
 
         {/* Error State */}
