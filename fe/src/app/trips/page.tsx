@@ -180,7 +180,7 @@ export default function TripsPage() {
   }, [searchQuery, filters, sortBy, groupBy]);
 
   const handleTripClick = (trip: Trip) => {
-    router.push(`/trip/${trip.id}/itinerary`);
+    router.push(`/trip/${trip.id}/itinerary/view`);
   };
 
   const handlePlanNewTrip = () => {

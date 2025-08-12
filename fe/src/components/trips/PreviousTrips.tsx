@@ -93,7 +93,6 @@ export function PreviousTrips() {
   const hasDbTrips = data?.myTrips?.trips && data.myTrips.trips.length > 0;
   const trips = hasDbTrips ? data.myTrips.trips : staticTopRegions;
   const showingDbTrips = hasDbTrips;
-
   const handleTripClick = (trip: Trip) => {
     if (trip.id.startsWith("static-")) {
       // For static trips, navigate to create new trip with destination
@@ -103,8 +102,8 @@ export function PreviousTrips() {
                         : "";
       router.push(`/trip/new${destination ? `?destination=${encodeURIComponent(destination)}` : ""}`);
     } else {
-      // For real trips, navigate to trip itinerary
-      router.push(`/trip/${trip.id}/itinerary`);
+      // For real trips, navigate to trip itinerary view
+      router.push(`/trip/${trip.id}/itinerary/view`);
     }
   };
 

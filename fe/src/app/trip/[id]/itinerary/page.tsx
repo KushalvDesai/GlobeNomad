@@ -277,9 +277,8 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
 
         if (result.data?.updateItinerary) {
           setCurrentItinerary(result.data.updateItinerary);
-          alert("Itinerary updated successfully!");
-          router.push(`/trip/${id}/view`);
-          return;
+          // Redirect to view page after successful update
+          router.push(`/trip/${id}/itinerary/view`);
         }
       } else {
         // Create new itinerary
@@ -310,9 +309,11 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
 
         if (result.data?.createItinerary) {
           setCurrentItinerary(result.data.createItinerary);
-          alert("Itinerary created successfully!");
-          router.push(`/trip/${id}/view`);
-          return;
+          // Redirect to view page after successful creation
+          router.push(`/trip/${id}/itinerary/view`);
+          
+          // Refetch to get the latest data
+          refetchItinerary();
         }
       }
 
@@ -517,7 +518,7 @@ export default function BuildItineraryPage({ params }: { params: Promise<{ id: s
             </div>
             <button
               onClick={handleSaveItinerary}
-              className="px-6 py-3 rounded-md bg-[#c7a14a] text-white disabled:opacity-50 hover:bg-[#b8924a] transition-colors inline-flex items-center gap-2"
+              className="px-4 py-2 rounded-md bg-[#c7a14a] disabled:opacity-50 text-white inline-flex items-center gap-2"
               disabled={stops.length === 0 || Object.keys(validationErrors).length > 0}
             >
               <Save className="w-4 h-4" />
