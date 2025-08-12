@@ -1,18 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useQuery } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
+import { useSearchParams } from 'next/navigation';
 import { 
   GET_ACTIVITIES_BY_CITY, 
   SEARCH_ACTIVITIES, 
   GET_ACTIVITY_CATEGORIES,
   GET_CITY_ACTIVITY_STATS 
 } from '@/graphql/queries';
+import { ADD_STOP_TO_TRIP } from '@/graphql/mutations';
 import { 
   Activity, 
   ActivityCategory, 
   CityActivityStats,
-  ActivityFiltersInput
+  ActivityFiltersInput,
+  AddStopToTripInput
 } from '@/graphql/types';
 import ActivityCard from '@/components/activities/ActivityCard';
 import ActivityFilters from '@/components/activities/ActivityFilters';
@@ -21,7 +24,11 @@ import CitySelector from '@/components/activities/CitySelector';
 import { Loader2, MapPin, Filter, Search } from 'lucide-react';
 
 export default function ActivitiesPage() {
-  const [selectedCity, setSelectedCity] = useState<string>('');
+  const searchParams = useSearchParams();
+  const tripId = searchParams.get('tripId');
+  const cityFromUrl = searchParams.get('city');
+  const dayFromUrl = searchParams.get('day'); // Add this to get day from URL
+  const [selectedCity, setSelectedCity] = useState<string>(cityFromUrl || '');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [sortBy, setSortBy] = useState<string>('name');
@@ -30,6 +37,9 @@ export default function ActivitiesPage() {
   const [maxPrice, setMaxPrice] = useState<number | undefined>();
   const [difficulty, setDifficulty] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
+
+  // Add mutation for adding activities to trip
+  const [addStopToTrip] = useMutation(ADD_STOP_TO_TRIP);
 
   // Get city stats for city selector
   const { data: cityStatsData } = useQuery(GET_CITY_ACTIVITY_STATS);
@@ -105,6 +115,49 @@ export default function ActivitiesPage() {
     setSortBy('name');
     setSortOrder('ASC');
   };
+
+  const handleAddToTrip = async (activity: Activity) => {
+    if (!tripId) return;
+
+    try {
+      const selectedDay = dayFromUrl ? parseInt(dayFromUrl) : 1; // Use selected day or default to 1
+      
+      const addStopInput: AddStopToTripInput = {
+        tripId,
+        day: selectedDay, // Use the selected day
+        order: 1, // Default order, will be adjusted by backend
+        stop: {
+          name: activity.name,
+          description: activity.description,
+          city: activity.location.city,
+          country: activity.location.country,
+          latitude: activity.location.latitude,
+          longitude: activity.location.longitude,
+          address: activity.location.address,
+          estimatedCost: activity.pricing.basePrice,
+          type: activity.category.name,
+          estimatedDuration: activity.duration
+        }
+      };
+
+      await addStopToTrip({
+        variables: { addStopInput }
+      });
+
+      // Show success message with day information
+      alert(`Activity added to Day ${selectedDay} of your trip!`);
+    } catch (error) {
+      console.error('Error adding activity to trip:', error);
+      alert('Failed to add activity to trip. Please try again.');
+    }
+  };
+
+  // Add useEffect to handle city from itinerary
+  useEffect(() => {
+    if (cityFromUrl && !selectedCity) {
+      setSelectedCity(cityFromUrl);
+    }
+  }, [cityFromUrl, selectedCity]);
 
   return (
     <div className="min-h-screen" style={{ background: 'var(--background)' }}>
@@ -233,7 +286,12 @@ export default function ActivitiesPage() {
             {!loading && !error && activities.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {activities.map((activity) => (
-                  <ActivityCard key={activity.id} activity={activity} />
+                  <ActivityCard 
+                    key={activity.id} 
+                    activity={activity} 
+                    tripId={tripId}
+                    onAddToTrip={handleAddToTrip}
+                  />
                 ))}
               </div>
             )}

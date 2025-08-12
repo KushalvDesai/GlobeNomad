@@ -22,21 +22,33 @@ export function createApolloClient(): ApolloClient<any> {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
-    fetch: (uri, options) => {
+    // Use a custom fetch function to handle potential CORS/network issues
+    fetch: async (uri, options) => {
       console.log("🚀 GraphQL Request:", {
         url: uri,
         method: options?.method,
         headers: options?.headers,
         body: options?.body ? JSON.parse(options.body as string) : null
       });
-      return fetch(uri, options).then(response => {
+      
+      try {
+        const response = await fetch(uri, {
+          ...options,
+          mode: 'cors', // Explicitly set CORS mode
+          cache: 'no-cache', // Disable caching for debugging
+        });
+        
         console.log("📥 GraphQL Response:", {
           status: response.status,
           statusText: response.statusText,
           ok: response.ok
         });
+        
         return response;
-      });
+      } catch (error) {
+        console.error("❌ Fetch Error:", error);
+        throw error;
+      }
     }
   });
 

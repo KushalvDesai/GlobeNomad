@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, use, useEffect } from "react";
-import { Settings, User, LogOut, Calendar, MapPin, Edit, ArrowLeft, Filter, Search, Users, Plus } from "lucide-react";
+import { Settings, User, LogOut, Calendar, MapPin, Edit, ArrowLeft, Filter, Search, Users, Plus, X } from "lucide-react";
 import { useQuery } from "@apollo/client";
 import { GET_TRIP, GET_ITINERARY } from "@/graphql/queries";
 import type { Itinerary, ItineraryItem } from "@/graphql/types";
@@ -15,6 +15,7 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
   const [searchQuery, setSearchQuery] = useState("");
   const [groupBy, setGroupBy] = useState("day");
   const [sortBy, setSortBy] = useState("time");
+  const [showDaySelector, setShowDaySelector] = useState(false);
   
   const { data: tripData, loading: tripLoading } = useQuery(GET_TRIP, { variables: { id } });
   const { data: itineraryData, loading: itineraryLoading } = useQuery<{ getItinerary: Itinerary }>(GET_ITINERARY, { 
@@ -53,23 +54,52 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
     if (!itinerary?.items) return {};
     
     const grouped: { [day: string]: ItineraryItem[] } = {};
+    let unassignedItems: ItineraryItem[] = [];
     
+    // First pass: assign items with valid dates
     itinerary.items.forEach(item => {
-      const dayKey = item.startTime ? new Date(item.startTime).toISOString().slice(0, 10) : 'unassigned';
-      if (!grouped[dayKey]) grouped[dayKey] = [];
-      grouped[dayKey].push(item);
+      if (item.startTime) {
+        const date = new Date(item.startTime);
+        // Check if the date is valid
+        if (!isNaN(date.getTime())) {
+          const dayKey = date.toISOString().slice(0, 10);
+          if (!grouped[dayKey]) grouped[dayKey] = [];
+          grouped[dayKey].push(item);
+        } else {
+          unassignedItems.push(item);
+        }
+      } else {
+        unassignedItems.push(item);
+      }
     });
+    
+    // Second pass: distribute unassigned items across trip days
+    if (unassignedItems.length > 0 && tripDays.length > 0) {
+      unassignedItems.forEach((item, index) => {
+        // Distribute items across available days in round-robin fashion
+        const dayIndex = index % tripDays.length;
+        const dayKey = tripDays[dayIndex];
+        if (!grouped[dayKey]) grouped[dayKey] = [];
+        grouped[dayKey].push(item);
+      });
+    }
     
     // Sort items within each day by start time
     Object.keys(grouped).forEach(day => {
       grouped[day].sort((a, b) => {
         if (!a.startTime || !b.startTime) return 0;
-        return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+        const dateA = new Date(a.startTime);
+        const dateB = new Date(b.startTime);
+        // Handle invalid dates - put them at the end
+        if (isNaN(dateA.getTime()) && isNaN(dateB.getTime())) return 0;
+        if (isNaN(dateA.getTime())) return 1;
+        if (isNaN(dateB.getTime())) return -1;
+        return dateA.getTime() - dateB.getTime();
       });
     });
     
     return grouped;
-  }, [itinerary?.items]);
+  }, [itinerary?.items, tripDays]);
 
   // Filter items based on search
   const filteredItemsByDay = useMemo(() => {
@@ -111,6 +141,39 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
     router.push(`/trip/${id}/itinerary`);
   };
 
+  const handleAddActivity = () => {
+    if (tripDays.length > 1) {
+      // Show day selection modal if there are multiple days
+      setShowDaySelector(true);
+    } else {
+      // If only one day, go directly to activities
+      navigateToActivities(1);
+    }
+  };
+
+  const navigateToActivities = (selectedDay: number) => {
+    // Get the most common city from itinerary items
+    const cities = itinerary?.items
+      ?.map(item => item.stop.city)
+      .filter(Boolean) || [];
+    
+    const cityCount = cities.reduce((acc, city) => {
+      acc[city] = (acc[city] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    const mostCommonCity = Object.entries(cityCount)
+      .sort(([,a], [,b]) => b - a)[0]?.[0];
+    
+    const baseUrl = `/activities?tripId=${id}&day=${selectedDay}`;
+    const url = mostCommonCity 
+      ? `${baseUrl}&city=${encodeURIComponent(mostCommonCity)}`
+      : baseUrl;
+    
+    router.push(url);
+    setShowDaySelector(false);
+  };
+
   const handleBackToTrips = () => {
     router.push("/trips");
   };
@@ -149,6 +212,43 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
   if (!itinerary || !itinerary.items || itinerary.items.length === 0) {
     return (
       <div className="min-h-screen bg-[#0b0b12] text-[#E6E8EB]">
+        {/* Day Selection Modal */}
+        {showDaySelector && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-[#0f0f17] rounded-lg border border-[#2a2a35] p-6 max-w-md w-full mx-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white">Select Day for Activity</h3>
+                <button
+                  onClick={() => setShowDaySelector(false)}
+                  className="p-1 rounded-md hover:bg-[#14141c] text-[#9AA0A6] hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-[#9AA0A6] mb-4">Choose which day you want to add the activity to:</p>
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {tripDays.map((day, index) => (
+                  <button
+                    key={day}
+                    onClick={() => navigateToActivities(index + 1)}
+                    className="w-full text-left p-3 rounded-md bg-[#14141c] hover:bg-[#1a1a24] border border-[#2a2a35] hover:border-[#c7a14a] transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-white">Day {index + 1}</div>
+                        <div className="text-sm text-[#9AA0A6]">{formatDate(day)}</div>
+                      </div>
+                      <div className="text-sm text-[#9AA0A6]">
+                        {Object.entries(filteredItemsByDay).find(([d]) => d === day)?.[1]?.length || 0} activities
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         <header className="px-6 py-4 border-b border-[#2a2a35] sticky top-0 z-30 bg-[#0b0b12]/90 backdrop-blur">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <button onClick={() => router.push("/")} className="text-2xl font-semibold text-white hover:opacity-90">
@@ -192,6 +292,43 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="min-h-screen bg-[#0b0b12] text-[#E6E8EB]">
+      {/* Day Selection Modal */}
+      {showDaySelector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#0f0f17] rounded-lg border border-[#2a2a35] p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">Select Day for Activity</h3>
+              <button
+                onClick={() => setShowDaySelector(false)}
+                className="p-1 rounded-md hover:bg-[#14141c] text-[#9AA0A6] hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-[#9AA0A6] mb-4">Choose which day you want to add the activity to:</p>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {tripDays.map((day, index) => (
+                <button
+                  key={day}
+                  onClick={() => navigateToActivities(index + 1)}
+                  className="w-full text-left p-3 rounded-md bg-[#14141c] hover:bg-[#1a1a24] border border-[#2a2a35] hover:border-[#c7a14a] transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-white">Day {index + 1}</div>
+                      <div className="text-sm text-[#9AA0A6]">{formatDate(day)}</div>
+                    </div>
+                    <div className="text-sm text-[#9AA0A6]">
+                      {Object.entries(filteredItemsByDay).find(([d]) => d === day)?.[1]?.length || 0} activities
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <header className="px-6 py-4 border-b border-[#2a2a35] sticky top-0 z-30 bg-[#0b0b12]/90 backdrop-blur">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <button onClick={() => router.push("/")} className="text-2xl font-semibold text-white hover:opacity-90">
@@ -230,7 +367,7 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
             </div>
             <div className="flex items-center gap-3">
               <button
-                onClick={handleEditItinerary}
+                onClick={handleAddActivity}
                 className="px-4 py-2 rounded-md bg-[#c7a14a] text-white hover:bg-[#c7a14a]/90 transition-colors inline-flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />

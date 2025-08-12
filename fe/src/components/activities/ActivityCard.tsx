@@ -1,14 +1,16 @@
 'use client';
 
 import { Activity } from '@/graphql/types';
-import { MapPin, Clock, Users, Star } from 'lucide-react';
+import { MapPin, Clock, Users, Star, Plus } from 'lucide-react';
 import Link from 'next/link';
 
 interface ActivityCardProps {
   activity: Activity;
+  tripId?: string | null;
+  onAddToTrip?: (activity: Activity) => void;
 }
 
-export default function ActivityCard({ activity }: ActivityCardProps) {
+export default function ActivityCard({ activity, tripId, onAddToTrip }: ActivityCardProps) {
   const getDifficultyColor = (difficulty?: string) => {
     if (!difficulty) return 'bg-gray-600 text-gray-200';
     
@@ -48,6 +50,14 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
     } else {
       const days = Math.floor(duration / 1440);
       return `${days} day${days > 1 ? 's' : ''}`;
+    }
+  };
+
+  const handleAddToTrip = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation to activity detail
+    e.stopPropagation();
+    if (onAddToTrip) {
+      onAddToTrip(activity);
     }
   };
 
@@ -137,11 +147,21 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
             )}
           </div>
 
-          {/* Price - simplified without dollar icon and button */}
-          <div className="mb-4">
+          {/* Price and Add to Trip Button */}
+          <div className="flex items-center justify-between mb-4">
             <div className="text-lg font-semibold" style={{ color: 'var(--accent-1)' }}>
-              {formatPrice(activity.pricing.basePrice, activity.pricing.currency)}
+              ₹{activity.pricing.basePrice.toLocaleString()}
             </div>
+            
+            {tripId && onAddToTrip && (
+              <button
+                onClick={handleAddToTrip}
+                className="px-3 py-1 rounded-md bg-[#c7a14a] text-white hover:bg-[#c7a14a]/90 transition-colors inline-flex items-center gap-1 text-sm"
+              >
+                <Plus className="w-3 h-3" />
+                Add to Trip
+              </button>
+            )}
           </div>
 
           {/* Tags preview */}
