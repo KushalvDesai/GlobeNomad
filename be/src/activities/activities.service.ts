@@ -15,6 +15,7 @@ export class ActivitiesService {
     @InjectModel(ActivityCategory.name) private categoryModel: Model<ActivityCategoryDocument>,
   ) {
     this.initializeDefaultCategories();
+    this.initializeActivities(); // Add this line
   }
 
   // Initialize default activity categories
@@ -40,6 +41,19 @@ export class ActivitiesService {
       }
     } catch (error) {
       this.logger.error('Error initializing default categories:', error);
+    }
+  }
+
+  // Add this method
+  private async initializeActivities() {
+    try {
+      const existingActivities = await this.activityModel.countDocuments();
+      if (existingActivities === 0) {
+        this.logger.log('No activities found, seeding activities...');
+        await this.seedActivities();
+      }
+    } catch (error) {
+      this.logger.error('Error checking/seeding activities:', error);
     }
   }
 
@@ -84,24 +98,36 @@ export class ActivitiesService {
   }
 
   async getAllActivities(filters?: ActivityFiltersInput): Promise<Activity[]> {
-    const query = this.buildActivityQuery(filters);
-    const sortOptions = this.buildSortOptions(filters);
-    
-    let queryBuilder = this.activityModel.find(query);
-    
-    if (sortOptions) {
-      queryBuilder = queryBuilder.sort(sortOptions);
-    }
-    
-    if (filters?.limit) {
-      queryBuilder = queryBuilder.limit(filters.limit);
-    }
-    
-    if (filters?.offset) {
-      queryBuilder = queryBuilder.skip(filters.offset);
-    }
+    try {
+      const query = this.buildActivityQuery(filters);
+      const sortOptions = this.buildSortOptions(filters);
+      
+      let queryBuilder = this.activityModel.find(query);
+      
+      if (sortOptions) {
+        queryBuilder = queryBuilder.sort(sortOptions);
+      }
+      
+      if (filters?.limit) {
+        queryBuilder = queryBuilder.limit(filters.limit);
+      }
+      
+      if (filters?.offset) {
+        queryBuilder = queryBuilder.skip(filters.offset);
+      }
 
-    return queryBuilder.exec();
+      const activities = await queryBuilder.exec();
+      
+      // If no activities found and no filters applied, suggest seeding
+      if (activities.length === 0 && !filters) {
+        this.logger.warn('No activities found in database. Consider running seedActivities mutation.');
+      }
+      
+      return activities;
+    } catch (error) {
+      this.logger.error('Error fetching activities:', error);
+      throw error;
+    }
   }
 
   async getActivitiesByCountry(country: string, filters?: ActivityFiltersInput): Promise<Activity[]> {

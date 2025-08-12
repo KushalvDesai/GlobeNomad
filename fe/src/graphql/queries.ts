@@ -225,3 +225,213 @@ export const GET_PUBLIC_TRIP = gql`
     }
   }
 `;
+
+// Activity Queries
+export const GET_ACTIVITIES = gql`
+  query GetActivities($filters: ActivityFiltersInput) {
+    getActivities(filters: $filters) {
+      id
+      name
+      description
+      location {
+        city
+        country
+        state
+        latitude
+        longitude
+        address
+      }
+      pricing {
+        basePrice
+        currency
+        groupDiscount
+        seasonalMultiplier
+        priceIncludes
+      }
+      duration
+      maxParticipants
+      category {
+        id
+        name
+        description
+      }
+      requirements {
+        minAge
+        maxAge
+        fitnessLevel
+        skillLevel
+        equipment
+        restrictions
+      }
+      images
+      tags
+      bestSeasons
+      operatingHours
+      contactInfo
+      bookingUrl
+      rating
+      reviewCount
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_ACTIVITIES_BY_CITY = gql`
+  query GetActivitiesByCity($city: String!, $filters: ActivityFiltersInput) {
+    getActivitiesByCity(city: $city, filters: $filters) {
+      id
+      name
+      description
+      location {
+        city
+        country
+        state
+        latitude
+        longitude
+        address
+      }
+      pricing {
+        basePrice
+        currency
+        groupDiscount
+        seasonalMultiplier
+        priceIncludes
+      }
+      duration
+      maxParticipants
+      category {
+        id
+        name
+        description
+      }
+      requirements {
+        minAge
+        maxAge
+        fitnessLevel
+        skillLevel
+        equipment
+        restrictions
+      }
+      images
+      tags
+      bestSeasons
+      operatingHours
+      contactInfo
+      bookingUrl
+      rating
+      reviewCount
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const SEARCH_ACTIVITIES = gql`
+  query SearchActivities($searchTerm: String!, $filters: ActivityFiltersInput) {
+    searchActivities(searchTerm: $searchTerm, filters: $filters) {
+      id
+      name
+      description
+      location {
+        city
+        country
+        state
+        latitude
+        longitude
+        address
+      }
+      pricing {
+        basePrice
+        currency
+        groupDiscount
+        seasonalMultiplier
+        priceIncludes
+      }
+      duration
+      maxParticipants
+      category {
+        id
+        name
+        description
+      }
+      requirements {
+        minAge
+        maxAge
+        fitnessLevel
+        skillLevel
+        equipment
+        restrictions
+      }
+      images
+      tags
+      bestSeasons
+      operatingHours
+      contactInfo
+      bookingUrl
+      rating
+      reviewCount
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_ACTIVITY_CATEGORIES = gql`
+  query GetActivityCategories {
+    getActivityCategories {
+      id
+      name
+      description
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const GET_CITY_ACTIVITY_STATS = gql`
+  query GetCityActivityStats {
+    getCityActivityStats {
+      city
+      country
+      totalActivities
+      categories
+      averagePrice
+      currency
+    }
+  }
+`;
+
+export const GET_ACTIVITY = gql`
+  query GetActivity($id: ID!) {
+    getActivity(id: $id) {
+      id
+      name
+      description
+      city
+      country
+      price
+      currency
+      duration
+      difficulty
+      category {
+        id
+        name
+        description
+      }
+      requirements
+      included
+      excluded
+      highlights
+      images
+      rating
+      reviewCount
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;

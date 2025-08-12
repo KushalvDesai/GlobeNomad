@@ -179,13 +179,16 @@ export default function NewTripPage() {
                 <label className="flex flex-col gap-2">
                   <span className="text-sm text-[#9AA0A6]">Start date</span>
                   <div className="relative">
-                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" color="#9AA0A6" />
+                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" color="white" />
                     <input
                       type="date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                       min={today}
-                      className="w-full pl-9 pr-3 py-2 rounded-md bg-[#0b0b12] border border-[#2a2a35] focus:outline-none focus:ring-2 focus:ring-[#27C3FF]"
+                      className="w-full pl-9 pr-3 py-2 rounded-md bg-[#0b0b12] border border-[#2a2a35] focus:outline-none focus:ring-2 focus:ring-[#27C3FF] text-white [color-scheme:dark]"
+                      style={{
+                        colorScheme: 'dark'
+                      }}
                     />
                   </div>
                 </label>
@@ -193,13 +196,16 @@ export default function NewTripPage() {
                 <label className="flex flex-col gap-2">
                   <span className="text-sm text-[#9AA0A6]">End date</span>
                   <div className="relative">
-                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" color="#9AA0A6" />
+                    <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" color="white" />
                     <input
                       type="date"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                       min={startDate || today}
-                      className="w-full pl-9 pr-3 py-2 rounded-md bg-[#0b0b12] border border-[#2a2a35] focus:outline-none focus:ring-2 focus:ring-[#27C3FF]"
+                      className="w-full pl-9 pr-3 py-2 rounded-md bg-[#0b0b12] border border-[#2a2a35] focus:outline-none focus:ring-2 focus:ring-[#27C3FF] text-white [color-scheme:dark]"
+                      style={{
+                        colorScheme: 'dark'
+                      }}
                     />
                   </div>
                 </label>

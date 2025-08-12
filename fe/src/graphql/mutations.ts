@@ -309,3 +309,84 @@ export const REMOVE_STOP_FROM_TRIP = gql`
     }
   }
 `;
+
+// Activity Mutations
+export const SEED_ACTIVITIES = gql`
+  mutation SeedActivities {
+    seedActivities
+  }
+`;
+
+export const CREATE_ACTIVITY_CATEGORY = gql`
+  mutation CreateActivityCategory($input: CreateActivityCategoryInput!) {
+    createActivityCategory(input: $input) {
+      id
+      name
+      description
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const CREATE_ACTIVITY = gql`
+  mutation CreateActivity($input: CreateActivityInput!) {
+    createActivity(input: $input) {
+      id
+      name
+      description
+      city
+      country
+      price
+      currency
+      duration
+      difficulty
+      category {
+        id
+        name
+        description
+      }
+      requirements
+      included
+      excluded
+      highlights
+      images
+      rating
+      reviewCount
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const CREATE_ACTIVITIES_BATCH = gql`
+  mutation CreateActivitiesBatch($input: [CreateActivityInput!]!) {
+    createActivitiesBatch(input: $input) {
+      id
+      name
+      description
+      city
+      country
+      price
+      currency
+      duration
+      difficulty
+      category {
+        id
+        name
+        description
+      }
+      requirements
+      included
+      excluded
+      highlights
+      images
+      rating
+      reviewCount
+      isActive
+      createdAt
+      updatedAt
+    }
+  }
+`;
