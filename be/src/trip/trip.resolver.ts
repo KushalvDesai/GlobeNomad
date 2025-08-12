@@ -1,4 +1,4 @@
-import { Resolver, Query, Mutation, Args, Context, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Context, ID, Int } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { TripService } from './trip.service';
 import { Trip } from './schema/trip.schema';
@@ -41,6 +41,14 @@ export class TripResolver {
     @Args('slug') slug: string,
   ): Promise<Trip> {
     return this.tripService.findBySlug(slug);
+  }
+
+  @Query(() => TripsResponse)
+  async findAllPublicTrips(
+    @Args('limit', { type: () => Int, defaultValue: 10 }) limit: number,
+    @Args('offset', { type: () => Int, defaultValue: 0 }) offset: number,
+  ): Promise<TripsResponse> {
+    return this.tripService.findAllPublicTrips(limit, offset);
   }
 
   // Mutations
