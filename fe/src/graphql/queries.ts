@@ -63,7 +63,7 @@ export const GET_ADMIN_DASHBOARD = gql`
 `;
 
 export const GET_ADMIN_USERS = gql`
-  query GetAdminUsers($limit: Int, $offset: Int) {
+  query GetAdminUsers($limit: Float, $offset: Float) {
     adminUsers(limit: $limit, offset: $offset) {
       users {
         id
@@ -83,7 +83,7 @@ export const GET_ADMIN_USERS = gql`
 `;
 
 export const GET_ADMIN_TRIPS = gql`
-  query GetAdminTrips($limit: Int, $offset: Int) {
+  query GetAdminTrips($limit: Float, $offset: Float) {
     adminTrips(limit: $limit, offset: $offset) {
       trips {
         id
@@ -164,7 +164,7 @@ export const GET_ITINERARY = gql`
 
 // Get user's trips
 export const GET_MY_TRIPS = gql`
-  query GetMyTrips($limit: Int, $offset: Int) {
+  query GetMyTrips($limit: Float, $offset: Float) {
     myTrips(limit: $limit, offset: $offset) {
       trips {
         id

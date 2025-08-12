@@ -1,6 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { ThreeDMarquee, type ThreeDMarqueeItem } from "@/components/3d-marquee";
+import { PreviousTrips } from "@/components/trips/PreviousTrips";
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useEffect, useCallback } from "react";
 import { useQuery } from "@apollo/client";
@@ -145,7 +146,7 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="px-6 py-8">
-        <div className="max-w-7xl mx-auto space-y-8">
+        <div className="max-w-7xl mx-auto space-y-12">
           {/* Banner with 3D Marquee centered */}
           <section>
             <div className="rounded-3xl bg-gray-950/5 ring-1 ring-neutral-700/10 dark:bg-neutral-800 overflow-hidden">
@@ -226,6 +227,9 @@ export default function Home() {
               </div>
             </div>
           </section>
+
+          {/* Previous Trips Section */}
+          <PreviousTrips />
         </div>
       </main>
 
