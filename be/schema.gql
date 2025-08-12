@@ -222,6 +222,7 @@ type Query {
   myTrips(limit: Float! = 10, offset: Float! = 0): TripsResponse!
   trip(id: ID!): Trip!
   publicTrip(slug: String!): Trip!
+  findAllPublicTrips(limit: Int! = 10, offset: Int! = 0): TripsResponse!
   getItinerary(tripId: ID!): Itinerary!
   getPublicItinerary(tripId: ID!): Itinerary
   getActivityCategories: [ActivityCategory!]!

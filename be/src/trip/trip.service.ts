@@ -57,6 +57,28 @@ export class TripService {
     };
   }
 
+  async findAllPublicTrips(limit = 10, offset = 0): Promise<TripsResponse> {
+    const trips = await this.tripModel
+      .find({ isPublic: true })
+      .populate('owner')
+      // .populate('itinerary')
+      .sort({ createdAt: -1 })
+      .limit(limit + 1)
+      .skip(offset)
+      .exec();
+
+    const hasMore = trips.length > limit;
+    if (hasMore) trips.pop();
+
+    const total = await this.tripModel.countDocuments({ isPublic: true });
+
+    return {
+      trips,
+      total,
+      hasMore,
+    };
+  }
+
   async findOne(id: string, userId?: string): Promise<Trip> {
     const trip = await this.tripModel.findById(id).populate('owner').exec();
     

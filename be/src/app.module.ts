@@ -1,4 +1,4 @@
-import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
@@ -12,7 +12,6 @@ import { CitiesResolver } from './cities/cities.resolver';
 import { AdminModule } from './admin/admin.module';
 import { CitiesModule } from './cities/cities.module';
 import { ActivitiesModule } from './activities/activities.module';
-import { RedirectMiddleware } from './redirect.middleware';
 
 @Module({
   imports: [
@@ -37,10 +36,4 @@ import { RedirectMiddleware } from './redirect.middleware';
   ],
   providers: [AppService, CitiesResolver],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(RedirectMiddleware)
-      .forRoutes('*');
-  }
-}
+export class AppModule {}
