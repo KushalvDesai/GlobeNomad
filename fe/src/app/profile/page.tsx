@@ -2,17 +2,11 @@
 
 import React, { useState } from "react";
 import { useQuery } from "@apollo/client";
-import { Settings, User, LogOut } from "lucide-react";
+import { User, LogOut, Edit2, Save, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { GET_MY_TRIPS } from "@/graphql/queries";
+import { GET_USER_PROFILE, GET_MY_TRIPS } from "@/graphql/queries";
 
 // Types
-interface UserData {
-  name: string;
-  email: string;
-  bio: string;
-}
-
 interface Trip {
   id: string;
   title: string;
@@ -25,29 +19,28 @@ interface Trip {
 
 export default function UserProfilePage() {
   const router = useRouter();
-
-  // State
-  const [user, setUser] = useState<UserData>({
-    name: "John Doe",
-    email: "john@example.com",
-    bio: "Travel enthusiast exploring the world one destination at a time.",
-  });
-  
   const [isEditingBio, setIsEditingBio] = useState(false);
-  const [tempBio, setTempBio] = useState(user.bio);
-  
-  // Update tempBio when user.bio changes
-  React.useEffect(() => {
-    setTempBio(user.bio);
-  }, [user.bio]);
+  const [tempBio, setTempBio] = useState("");
 
-  // GraphQL Query
-  const { data, loading, error } = useQuery(GET_MY_TRIPS, {
+  // Fetch user profile data
+  const { data: profileData, loading: profileLoading, error: profileError } = useQuery(GET_USER_PROFILE, {
+    fetchPolicy: "cache-and-network",
+  });
+
+  // Fetch user trips
+  const { data: tripsData, loading: tripsLoading, error: tripsError } = useQuery(GET_MY_TRIPS, {
     variables: { limit: 10, offset: 0 },
   });
 
-  // Derived state
-  const preplannedTrips: Trip[] = data?.myTrips?.trips || [];
+  const user = profileData?.me;
+  const trips: Trip[] = tripsData?.myTrips?.trips || [];
+
+  // Initialize tempBio when user data loads
+  React.useEffect(() => {
+    if (user && !tempBio) {
+      setTempBio(user.bio || "Travel enthusiast exploring the world one destination at a time.");
+    }
+  }, [user, tempBio]);
 
   // Event handlers
   const handleLogout = () => {
@@ -56,18 +49,17 @@ export default function UserProfilePage() {
     router.push("/login");
   };
 
-  const handleEditProfile = () => {
+  const handleEditBio = () => {
     setIsEditingBio(true);
-    setTempBio(user.bio);
   };
 
   const handleSaveBio = () => {
-    setUser(prev => ({ ...prev, bio: tempBio }));
+    // TODO: Implement bio update mutation
     setIsEditingBio(false);
   };
 
   const handleCancelBio = () => {
-    setTempBio(user.bio);
+    setTempBio(user?.bio || "Travel enthusiast exploring the world one destination at a time.");
     setIsEditingBio(false);
   };
 
@@ -75,210 +67,211 @@ export default function UserProfilePage() {
     router.push(`/trip/${tripId}/view`);
   };
 
-  const navigateToItinerary = (tripId: string) => {
-    router.push(`/trip/${tripId}/itinerary`);
-  };
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const retryLoadTrips = () => {
-    // Force refetch the trips query
-    window.location.reload();
-  };
-
-  // Components
-  const Navbar = () => (
-    <header className="px-6 py-4 border-b border-[#2a2a35] sticky top-0 z-30 bg-[#0b0b12]/90 backdrop-blur">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
-        <button
-          onClick={() => router.push("/")}
-          className="text-2xl font-semibold text-white hover:opacity-90"
-        >
-          GlobeNomad
-        </button>
-        
-        <div className="flex items-center gap-3">
+  if (profileError || !user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Failed to load profile</p>
           <button
-            className="p-2 rounded-md hover:bg-[#14141c]"
-            aria-label="Settings"
+            onClick={() => router.push("/login")}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            <Settings className="w-5 h-5" />
-          </button>
-          
-          <button
-            className="p-2 rounded-md hover:bg-[#14141c]"
-            aria-label="Account"
-          >
-            <User className="w-5 h-5" />
-          </button>
-          
-          <button
-            onClick={handleLogout}
-            className="p-2 rounded-md hover:bg-[#14141c] text-red-400 hover:text-red-300"
-            aria-label="Logout"
-          >
-            <LogOut className="w-5 h-5" />
+            Go to Login
           </button>
         </div>
       </div>
-    </header>
-  );
+    );
+  }
 
-  const UserInfoSection = () => (
-    <div className="border-b border-[#2a2a35] pb-6 mb-8">
-      <div className="bg-[#14141c] rounded-lg p-6">
-        <div className="text-2xl font-semibold mb-2">{user.name}</div>
-        <div className="text-sm text-[#9AA0A6] mb-4">{user.email}</div>
-        
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-[#E6E8EB] mb-2">Bio</label>
-          {isEditingBio ? (
-            <div className="space-y-3">
-              <textarea
-                value={tempBio}
-                onChange={(e) => setTempBio(e.target.value)}
-                className="w-full p-3 bg-[#23232e] border border-[#2a2a35] rounded-lg text-[#E6E8EB] placeholder-[#9AA0A6] focus:outline-none focus:ring-2 focus:ring-[#c7a14a] focus:border-transparent resize-none"
-                rows={3}
-                placeholder="Tell us about yourself..."
-              />
-              <div className="flex gap-2">
-                <button
-                  onClick={handleSaveBio}
-                  className="px-4 py-2 rounded bg-[#c7a14a] text-white text-sm hover:bg-[#b8924a] transition-colors"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={handleCancelBio}
-                  className="px-4 py-2 rounded bg-[#23232e] text-[#E6E8EB] text-sm hover:bg-[#2a2a35] transition-colors"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <p className="text-[#E6E8EB] text-sm leading-relaxed">{user.bio}</p>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Navigation Header */}
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-4">
+            <button
+              onClick={() => router.push("/")}
+              className="text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
+            >
+              GlobeNomad
+            </button>
+            
+            <div className="flex items-center space-x-6">
               <button
-                onClick={handleEditProfile}
-                className="px-4 py-2 rounded bg-[#c7a14a] text-white text-sm hover:bg-[#b8924a] transition-colors"
+                onClick={() => router.push("/activities")}
+                className="text-gray-700 hover:text-gray-900 font-medium transition-colors"
               >
-                Edit Bio
+                Activities
+              </button>
+              
+              <button
+                className="p-2 rounded-full bg-blue-100 text-blue-600"
+                aria-label="Profile (Current Page)"
+              >
+                <User className="w-5 h-5" />
+              </button>
+              
+              <button
+                onClick={handleLogout}
+                className="text-gray-700 hover:text-red-600 font-medium transition-colors"
+              >
+                Logout
               </button>
             </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-
-  const TripCard = ({ trip }: { trip: Trip }) => (
-    <div className="bg-[#14141c] rounded-lg p-4 flex flex-col">
-      <div className="mb-3">
-        <h3 className="text-lg font-semibold text-[#E6E8EB] mb-2">{trip.title}</h3>
-        {trip.description && (
-          <p className="text-sm text-[#9AA0A6] mb-2 line-clamp-2">{trip.description}</p>
-        )}
-        {(trip.startDate || trip.endDate) && (
-          <div className="text-xs text-[#9AA0A6] mb-2">
-            {trip.startDate && new Date(trip.startDate).toLocaleDateString()} 
-            {trip.startDate && trip.endDate && ' - '}
-            {trip.endDate && new Date(trip.endDate).toLocaleDateString()}
           </div>
-        )}
-        {trip.estimatedBudget && (
-          <div className="text-xs text-[#c7a14a] mb-2">
-            Budget: {trip.currency || '$'}{trip.estimatedBudget}
-          </div>
-        )}
-      </div>
-      
-      <div className="flex gap-2 mt-auto">
-        <button
-          className="flex-1 px-3 py-2 rounded bg-[#c7a14a] text-white text-sm hover:bg-[#b8924a] transition-colors"
-          onClick={() => navigateToItinerary(trip.id)}
-        >
-          Itinerary
-        </button>
-        <button
-          className="flex-1 px-3 py-2 rounded bg-[#23232e] text-[#E6E8EB] text-sm hover:bg-[#2a2a35] transition-colors"
-          onClick={() => navigateToTrip(trip.id)}
-        >
-          Details
-        </button>
-      </div>
-    </div>
-  );
-
-  const PreplannedTripsSection = () => (
-    <div className="mb-8">
-      <h2 className="text-lg font-semibold mb-4">My Itineraries</h2>
-      
-      {loading ? (
-        <div className="text-center text-[#9AA0A6] py-8">
-          <div className="animate-pulse">Loading itineraries...</div>
         </div>
-      ) : error ? (
-        <div className="text-center py-8">
-          <div className="bg-[#14141c] rounded-lg p-6 border border-red-500/20">
-            <div className="text-red-400 mb-2">⚠️ Failed to load itineraries</div>
-            <p className="text-[#9AA0A6] text-sm mb-4">
-              {error.message.includes('Unauthorized') || error.message.includes('401') 
-                ? 'Please log in to view your itineraries.' 
-                : 'There was an error loading your itineraries. Please try again.'}
-            </p>
-            <div className="flex gap-2 justify-center">
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Profile Header */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                <User className="w-8 h-8 text-blue-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'User'}
+                </h1>
+                <p className="text-gray-600">{user.email}</p>
+                <p className="text-sm text-gray-500 mt-1">Role: {user.role || 'User'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bio Section */}
+          <div className="mt-6">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-medium text-gray-900">About</h3>
+              {!isEditingBio && (
+                <button
+                  onClick={handleEditBio}
+                  className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 transition-colors"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  <span className="text-sm">Edit</span>
+                </button>
+              )}
+            </div>
+            
+            {isEditingBio ? (
+              <div className="space-y-3">
+                <textarea
+                  value={tempBio}
+                  onChange={(e) => setTempBio(e.target.value)}
+                  className="w-full p-3 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  rows={3}
+                  placeholder="Tell us about yourself..."
+                />
+                <div className="flex space-x-2">
+                  <button
+                    onClick={handleSaveBio}
+                    className="flex items-center space-x-1 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Save</span>
+                  </button>
+                  <button
+                    onClick={handleCancelBio}
+                    className="flex items-center space-x-1 px-3 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                    <span>Cancel</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-700 leading-relaxed">
+                {user.bio || tempBio}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Trips Section */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-gray-900">My Adventures</h2>
+            <button
+              onClick={() => router.push("/trip/new")}
+              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Plan New Trip
+            </button>
+          </div>
+
+          {tripsLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading trips...</p>
+            </div>
+          ) : tripsError ? (
+            <div className="text-center py-8">
+              <p className="text-red-600 mb-4">Failed to load trips</p>
               <button
-                onClick={retryLoadTrips}
-                className="px-4 py-2 rounded bg-[#c7a14a] text-white text-sm hover:bg-[#b8924a] transition-colors"
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
               >
                 Retry
               </button>
-              {error.message.includes('Unauthorized') || error.message.includes('401') ? (
-                <button
-                  onClick={() => router.push('/login')}
-                  className="px-4 py-2 rounded bg-[#23232e] text-[#E6E8EB] text-sm hover:bg-[#2a2a35] transition-colors"
-                >
-                  Login
-                </button>
-              ) : null}
             </div>
-          </div>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {preplannedTrips.length === 0 ? (
-            <div className="col-span-full text-center py-8">
-              <div className="bg-[#14141c] rounded-lg p-6">
-                <div className="text-[#9AA0A6] mb-2">📝 No itineraries yet</div>
-                <p className="text-[#9AA0A6] text-sm mb-4">
-                  Start planning your next adventure!
-                </p>
-                <button
-                  onClick={() => router.push('/trip/new')}
-                  className="px-4 py-2 rounded bg-[#c7a14a] text-white text-sm hover:bg-[#b8924a] transition-colors"
-                >
-                  Create Itinerary
-                </button>
+          ) : trips.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <User className="w-8 h-8 text-gray-400" />
               </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Adventures Yet</h3>
+              <p className="text-gray-600 mb-6">Start planning your first adventure!</p>
+              <button
+                onClick={() => router.push("/trip/new")}
+                className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Plan Your First Trip
+              </button>
             </div>
           ) : (
-            preplannedTrips.map((trip) => (
-              <TripCard key={trip.id} trip={trip} />
-            ))
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {trips.map((trip) => (
+                <div
+                  key={trip.id}
+                  className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors cursor-pointer"
+                  onClick={() => navigateToTrip(trip.id)}
+                >
+                  <h3 className="font-semibold text-gray-900 mb-2">{trip.title}</h3>
+                  {trip.description && (
+                    <p className="text-sm text-gray-600 mb-2 line-clamp-2">{trip.description}</p>
+                  )}
+                  {(trip.startDate || trip.endDate) && (
+                    <div className="text-xs text-gray-500 mb-2">
+                      {trip.startDate && new Date(trip.startDate).toLocaleDateString()}
+                      {trip.startDate && trip.endDate && ' - '}
+                      {trip.endDate && new Date(trip.endDate).toLocaleDateString()}
+                    </div>
+                  )}
+                  {trip.estimatedBudget && (
+                    <div className="text-xs text-blue-600">
+                      Budget: {trip.currency || '$'}{trip.estimatedBudget}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           )}
         </div>
-      )}
-    </div>
-  );
-
-  return (
-    <div className="min-h-screen bg-[#0b0b12] text-[#E6E8EB]">
-      <Navbar />
-      <div className="max-w-4xl mx-auto p-8">
-        <UserInfoSection />
-        <PreplannedTripsSection />
-        
-        {/* TODO: Add Previous Trips section when data is available */}
-      </div>
+      </main>
     </div>
   );
 }

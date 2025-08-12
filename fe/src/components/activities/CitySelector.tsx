@@ -70,7 +70,7 @@ export default function CitySelector({ cities, selectedCity, onCityChange }: Cit
                       {city.totalActivities} activities
                     </div>
                     <div className="text-xs text-[#9AA0A6]">
-                      from {formatPrice(city.averagePrice, city.currency)}
+                      from {city.averagePrice ? formatPrice(city.averagePrice, city.currency) : 'N/A'}
                     </div>
                   </div>
                 </div>

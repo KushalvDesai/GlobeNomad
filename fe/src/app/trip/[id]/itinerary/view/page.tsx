@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState, use, useEffect } from "react";
-import { Settings, User, LogOut, Calendar, MapPin, Edit, ArrowLeft, Filter, Search, Users, Plus, X } from "lucide-react";
+import { User, LogOut, Calendar, MapPin, Edit, ArrowLeft, Filter, Search, Users, Plus, X } from "lucide-react";
 import { useQuery } from "@apollo/client";
 import { GET_TRIP, GET_ITINERARY } from "@/graphql/queries";
 import type { Itinerary, ItineraryItem } from "@/graphql/types";
@@ -239,7 +239,7 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
                         <div className="text-sm text-[#9AA0A6]">{formatDate(day)}</div>
                       </div>
                       <div className="text-sm text-[#9AA0A6]">
-                        {Object.entries(filteredItemsByDay).find(([d]) => d === day)?.[1]?.length || 0} activities
+                        {Object.entries(filteredItemsByDay || {}).find(([d]) => d === day)?.[1]?.length || 0} activities
                       </div>
                     </div>
                   </button>
@@ -255,10 +255,11 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
               GlobeNomad
             </button>
             <div className="flex items-center gap-3">
-              <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Settings">
-                <Settings className="w-5 h-5" />
-              </button>
-              <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Account">
+              <button 
+                onClick={() => router.push("/profile")}
+                className="p-2 rounded-md hover:bg-[#14141c]" 
+                aria-label="Profile"
+              >
                 <User className="w-5 h-5" />
               </button>
               <button 
@@ -319,7 +320,7 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
                       <div className="text-sm text-[#9AA0A6]">{formatDate(day)}</div>
                     </div>
                     <div className="text-sm text-[#9AA0A6]">
-                      {Object.entries(filteredItemsByDay).find(([d]) => d === day)?.[1]?.length || 0} activities
+                      {Object.entries(filteredItemsByDay || {}).find(([d]) => d === day)?.[1]?.length || 0} activities
                     </div>
                   </div>
                 </button>
@@ -335,10 +336,11 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
             GlobeNomad
           </button>
           <div className="flex items-center gap-3">
-            <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Settings">
-              <Settings className="w-5 h-5" />
-            </button>
-            <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Account">
+            <button 
+              onClick={() => router.push("/profile")}
+              className="p-2 rounded-md hover:bg-[#14141c]" 
+              aria-label="Profile"
+            >
               <User className="w-5 h-5" />
             </button>
             <button 
@@ -461,7 +463,7 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
 
           {/* Itinerary Content */}
           <div className="space-y-6">
-            {Object.entries(filteredItemsByDay)
+            {Object.entries(filteredItemsByDay || {})
               .sort(([a], [b]) => a.localeCompare(b))
               .map(([day, items]) => (
                 <div key={day} className="bg-[#0f0f17] rounded-lg border border-[#2a2a35] overflow-hidden">
@@ -540,7 +542,7 @@ export default function ViewItineraryPage({ params }: { params: Promise<{ id: st
               ))}
           </div>
 
-          {Object.keys(filteredItemsByDay).length === 0 && (
+          {Object.keys(filteredItemsByDay || {}).length === 0 && (
             <div className="text-center py-12">
               <MapPin className="w-12 h-12 text-[#9AA0A6] mx-auto mb-4" />
               <h3 className="text-lg font-medium text-white mb-2">

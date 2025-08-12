@@ -129,7 +129,11 @@ export default function Home() {
               <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Settings">
                 <Settings className="w-5 h-5" />
               </button>
-              <button className="p-2 rounded-md hover:bg-[#14141c]" aria-label="Account">
+              <button 
+                onClick={() => router.push("/profile")}
+                className="p-2 rounded-md hover:bg-[#14141c]" 
+                aria-label="Profile"
+              >
                 <User className="w-5 h-5" />
               </button>
               <button 
