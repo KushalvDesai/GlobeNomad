@@ -426,11 +426,34 @@ export class TripService {
       }
     }
 
+    // Calculate startTime and endTime based on trip dates and selected day
+    let startTime: Date | undefined;
+    let endTime: Date | undefined;
+    
+    if (trip.startDate) {
+      const tripStartDate = new Date(trip.startDate);
+      // Calculate the date for the selected day (day 1 = trip start date, day 2 = trip start date + 1, etc.)
+      const selectedDayDate = new Date(tripStartDate);
+      selectedDayDate.setDate(tripStartDate.getDate() + (addStopInput.day - 1));
+      
+      // Set a default time (e.g., 9:00 AM) for the activity
+      startTime = new Date(selectedDayDate);
+      startTime.setHours(9, 0, 0, 0);
+      
+      // If duration is provided, calculate end time
+      if (stopData.estimatedDuration) {
+        endTime = new Date(startTime);
+        endTime.setHours(startTime.getHours() + stopData.estimatedDuration);
+      }
+    }
+
     // Create new itinerary item
     const newItem: ItineraryItem = {
       id: new Date().getTime().toString(),
       day: addStopInput.day,
       order: addStopInput.order,
+      startTime,
+      endTime,
       stop: {
         ...stopData,
         id: new Date().getTime().toString() + '_stop',

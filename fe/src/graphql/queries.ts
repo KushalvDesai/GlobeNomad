@@ -9,8 +9,6 @@ export const GET_USERS = gql`
       email
       firstName
       lastName
-      createdAt
-      updatedAt
     }
   }
 `;
@@ -37,15 +35,7 @@ export const GET_USER_PROFILE = gql`
       id
       name
       email
-      firstName
-      lastName
-      phoneNumber
-      city
-      country
       role
-      isActive
-      createdAt
-      updatedAt
     }
   }
 `;
@@ -73,8 +63,6 @@ export const GET_ADMIN_USERS = gql`
         lastName
         role
         isActive
-        createdAt
-        updatedAt
       }
       total
       hasMore

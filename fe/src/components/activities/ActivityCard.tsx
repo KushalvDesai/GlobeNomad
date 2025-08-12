@@ -1,14 +1,16 @@
 'use client';
 
 import { Activity } from '@/graphql/types';
-import { MapPin, Clock, Users, Star } from 'lucide-react';
-import Link from 'next/link';
+import { MapPin, Clock, Users, Star, Plus } from 'lucide-react';
 
 interface ActivityCardProps {
   activity: Activity;
+  tripId?: string | null;
+  onAddToTrip?: (activity: Activity) => void;
+  onActivityClick?: (activity: Activity) => void;
 }
 
-export default function ActivityCard({ activity }: ActivityCardProps) {
+export default function ActivityCard({ activity, tripId, onAddToTrip, onActivityClick }: ActivityCardProps) {
   const getDifficultyColor = (difficulty?: string) => {
     if (!difficulty) return 'bg-gray-600 text-gray-200';
     
@@ -27,15 +29,6 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
     }
   };
 
-  const formatPrice = (price: number, currency: string) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(price);
-  };
-
   const formatDuration = (duration?: number) => {
     if (!duration) return 'Duration not specified';
     
@@ -51,110 +44,138 @@ export default function ActivityCard({ activity }: ActivityCardProps) {
     }
   };
 
+  const handleAddToTrip = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onAddToTrip) {
+      onAddToTrip(activity);
+    }
+  };
+
+  const handleCardClick = () => {
+    if (onActivityClick) {
+      onActivityClick(activity);
+    }
+  };
+
   return (
-    <Link href={`/activities/${activity.id}`}>
-      <div className="card card-hover cursor-pointer overflow-hidden">
-        {/* Image placeholder */}
-        <div className="h-48 bg-gradient-to-br from-blue-400 to-purple-500 relative">
-          {activity.images && activity.images.length > 0 ? (
-            <img
-              src={activity.images[0]}
-              alt={activity.name}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="flex items-center justify-center h-full">
-              <MapPin className="w-12 h-12 text-white opacity-50" />
-            </div>
-          )}
-          
-          {/* Difficulty badge */}
-          {activity.requirements?.fitnessLevel && (
-            <div className="absolute top-3 right-3">
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(activity.requirements.fitnessLevel)}`}>
-                {activity.requirements.fitnessLevel}
-              </span>
-            </div>
-          )}
-
-          {/* Rating badge */}
-          {activity.rating && (
-            <div className="absolute top-3 left-3 bg-black bg-opacity-70 rounded-full px-2 py-1 flex items-center space-x-1">
-              <Star className="w-3 h-3 text-yellow-400 fill-current" />
-              <span className="text-xs font-medium" style={{ color: 'var(--foreground)' }}>
-                {activity.rating.toFixed(1)}
-              </span>
-              {activity.reviewCount && (
-                <span className="text-xs" style={{ color: 'var(--foreground)' }}>
-                  ({activity.reviewCount})
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
-        <div className="p-4">
-          {/* Header */}
-          <div className="mb-3">
-            <h3 className="font-semibold text-lg mb-1 line-clamp-2" style={{ color: 'var(--foreground)' }}>
-              {activity.name}
-            </h3>
-            <div className="flex items-center text-sm" style={{ color: 'var(--muted-foreground)' }}>
-              <MapPin className="w-4 h-4 mr-1" style={{ color: 'var(--muted-foreground)' }} />
-              <span>{activity.location.city}, {activity.location.country}</span>
-            </div>
+    <div 
+      onClick={handleCardClick}
+      className="bg-[#0f0f17] border border-[#2a2a35] rounded-lg overflow-hidden cursor-pointer hover:border-[#27C3FF]/50 hover:bg-[#14141c] transition-all duration-200"
+    >
+      {/* Image placeholder */}
+      <div className="h-48 bg-gradient-to-br from-[#27C3FF]/20 to-[#c7a14a]/20 relative">
+        {activity.images && activity.images.length > 0 ? (
+          <img
+            src={activity.images[0]}
+            alt={activity.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <MapPin className="w-12 h-12 text-[#9AA0A6] opacity-50" />
           </div>
-
-          {/* Description */}
-          <p className="text-sm mb-4 line-clamp-2" style={{ color: 'var(--muted-foreground)' }}>
-            {activity.description}
-          </p>
-
-          {/* Category */}
-          <div className="mb-3">
-            <span 
-              className="inline-block text-xs px-2 py-1 rounded-full"
-              style={{ 
-                backgroundColor: 'var(--accent-1)', 
-                color: 'var(--background)' 
-              }}
-            >
-              {activity.category.name}
+        )}
+        
+        {/* Difficulty badge */}
+        {activity.requirements?.fitnessLevel && (
+          <div className="absolute top-3 right-3">
+            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(activity.requirements.fitnessLevel)}`}>
+              {activity.requirements.fitnessLevel}
             </span>
           </div>
+        )}
 
-          {/* Details */}
-          <div className="flex items-center justify-between text-sm mb-4" style={{ color: 'var(--muted-foreground)' }}>
-            <div className="flex items-center">
-              <Clock className="w-4 h-4 mr-1" style={{ color: 'var(--muted-foreground)' }} />
-              <span>{formatDuration(activity.duration)}</span>
-            </div>
-            {activity.maxParticipants && (
-              <div className="flex items-center">
-                <Users className="w-4 h-4 mr-1" style={{ color: 'var(--muted-foreground)' }} />
-                <span>Max {activity.maxParticipants}</span>
-              </div>
+        {/* Rating badge */}
+        {activity.rating && (
+          <div className="absolute top-3 left-3 bg-black/70 rounded-full px-2 py-1 flex items-center space-x-1">
+            <Star className="w-3 h-3 text-yellow-400 fill-current" />
+            <span className="text-xs font-medium text-[#E6E8EB]">
+              {activity.rating.toFixed(1)}
+            </span>
+            {activity.reviewCount && (
+              <span className="text-xs text-[#E6E8EB]">
+                ({activity.reviewCount})
+              </span>
             )}
           </div>
+        )}
+      </div>
 
-          {/* Price - simplified without dollar icon and button */}
-          <div className="mb-4">
-            <div className="text-lg font-semibold" style={{ color: 'var(--accent-1)' }}>
-              {formatPrice(activity.pricing.basePrice, activity.pricing.currency)}
-            </div>
+      <div className="p-4">
+        {/* Header */}
+        <div className="mb-3">
+          <h3 className="font-semibold text-lg mb-1 line-clamp-2 text-[#E6E8EB]">
+            {activity.name}
+          </h3>
+          <div className="flex items-center text-sm text-[#9AA0A6]">
+            <MapPin className="w-4 h-4 mr-1" />
+            <span>{activity.location.city}, {activity.location.country}</span>
           </div>
+        </div>
 
-          {/* Tags preview */}
-          {activity.tags && activity.tags.length > 0 && (
-            <div className="pt-3" style={{ borderTop: '1px solid var(--muted)' }}>
-              <p className="text-xs line-clamp-1" style={{ color: 'var(--muted-foreground)' }}>
-                Tags: {activity.tags.slice(0, 3).join(', ')}
-                {activity.tags.length > 3 && '...'}
-              </p>
+        {/* Description */}
+        <p className="text-sm mb-4 line-clamp-2 text-[#9AA0A6]">
+          {activity.description}
+        </p>
+
+        {/* Category */}
+        <div className="mb-3">
+          <span 
+            className="inline-block text-xs px-2 py-1 rounded-full bg-[#27C3FF]/20 text-[#27C3FF] border border-[#27C3FF]/30"
+          >
+            {activity.category.name}
+          </span>
+        </div>
+
+        {/* Details */}
+        <div className="flex items-center justify-between text-sm mb-4 text-[#9AA0A6]">
+          <div className="flex items-center">
+            <Clock className="w-4 h-4 mr-1" />
+            <span>{formatDuration(activity.duration)}</span>
+          </div>
+          {activity.maxParticipants && (
+            <div className="flex items-center">
+              <Users className="w-4 h-4 mr-1" />
+              <span>Max {activity.maxParticipants}</span>
             </div>
           )}
         </div>
+
+        {/* Price and Add to Trip Button */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-lg font-semibold text-[#c7a14a]">
+            ₹{activity.pricing.basePrice.toLocaleString()}
+          </div>
+          
+          {tripId && onAddToTrip && (
+            <button
+              onClick={handleAddToTrip}
+              className="px-3 py-1 rounded-md bg-[#c7a14a] text-white hover:bg-[#c7a14a]/90 transition-colors inline-flex items-center gap-1 text-sm"
+            >
+              <Plus className="w-3 h-3" />
+              Add to Trip
+            </button>
+          )}
+        </div>
+
+        {/* Tags preview */}
+        {activity.tags && activity.tags.length > 0 && (
+          <div className="pt-3 border-t border-[#2a2a35]">
+            <p className="text-xs line-clamp-1 text-[#9AA0A6]">
+              Tags: {activity.tags.slice(0, 3).join(', ')}
+              {activity.tags.length > 3 && '...'}
+            </p>
+          </div>
+        )}
+
+        {/* Click hint */}
+        <div className="pt-2 text-center">
+          <p className="text-xs text-[#27C3FF] opacity-70">
+            Click to create trip with this activity
+          </p>
+        </div>
       </div>
-    </Link>
+    </div>
   );
 }
